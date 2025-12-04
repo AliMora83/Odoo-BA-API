@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+action_service_service_name,service.service,bridging_api_crm.model_service_service,,1,1,1,1
