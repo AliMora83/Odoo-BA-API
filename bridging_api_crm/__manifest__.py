@@ -1,6 +1,6 @@
 {
     "name": "API : CRM : Script",
-    "version": "18.0.0.1",
+    "version": "19.0.0.1",
     "category": "",
     "summary": """Bridging Africa : CRM API Script""",
     "description": "Bridging Africa",
