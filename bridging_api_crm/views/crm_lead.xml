@@ -1,0 +1,24 @@
+<odoo>
+
+    <record id="crm_lead_view_form" model="ir.ui.view">
+        <field name="name">crm.lead.form</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+            <notebook position="inside">
+                <page string="CRM API : Data">
+                    <group>
+                        <field name="quote_id"/>
+                        <field name="provider_id"/>
+                        <field name="ispaid"/>
+                        <field name="workerrrgency"/>
+                        <field name="q_status_id"/>
+                        <field name="service_id"/>
+                    </group>
+                </page>
+            </notebook>
+        </field>
+    </record>
+
+
+</odoo>
