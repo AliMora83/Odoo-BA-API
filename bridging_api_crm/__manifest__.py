@@ -5,7 +5,7 @@
     "summary": """Bridging Africa : CRM API Script""",
     "description": "Bridging Africa",
     "author": "Digital Information Solutions",
-    "website": "bridging-africa.com",
+    "website": "bridging-africa.odoo.com",
     "company": "Sesani Group",
     "license": "AGPL-3",
     "sequence": 1,
