@@ -1,12 +1,12 @@
 {
     "name": "API : CRM : Script",
     "version": "19.0.0.1",
-    "category": "",
+    "category": "Software Development",
     "summary": """Bridging Africa : CRM API Script""",
-    "description": "Bridging Africa",
-    "author": "Bridging",
-    "website": "",
-    "company": "#",
+    "description": "Connects all CRM API requests",
+    "author": "Digital Information Solutions",
+    "website": "bridging-africa.odoo.com",
+    "company": "Sesani Group",
     "license": "AGPL-3",
     "sequence": 1,
     "depends": [
