@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="website_custom_homepage" name="Custom Homepage" key="website.homepage">
+            <t t-call="website.layout">
+                <div id="wrap">
+                    <div class="container">
+                        <h1>Welcome to Bridging Africa</h1>
+                        <p>Your custom website content here</p>
+                    </div>
+                </div>
+            </t>
+        </template>
+    </data>
+</odoo>
