@@ -1,0 +1,131 @@
+﻿
+@{
+    ViewBag.Title = "Register";
+    Layout = "~/Areas/TradespersonApp/Views/Shared/_ProviderLayout.cshtml";
+}
+
+<script>
+    $(document).ready(function () {
+        var mobile = sessionStorage.getItem("P_MobileNumber");
+        if (mobile != "" && mobile != null) {
+            $('#MobileNumber').val(mobile);
+            var PostalCodeID = localStorage.getItem("PostalCodeID");
+            var AddressLine1 = localStorage.getItem("AddressLine1");
+            var AddressLine2 = localStorage.getItem("AddressLine2");
+            $('#MobileNumber').val(mobile);
+            $('#PostalCodeID').val(PostalCodeID);
+            $('#AddressLine1').val(AddressLine1);
+            $('#AddressLine2').val(AddressLine2);       
+            // Save button
+            $("#btnsave").click(function (e) {
+                e.preventDefault();
+                var IsValid = checkvalues();
+                if (IsValid !== "1") {
+                    IsValid.focus();
+                    $('#ErrorToast').html(IsValid[0].title);
+                    $('#ErrorToast').toast('show');
+                    return;
+                }
+                var formData = new FormData($("#myForm")[0]);
+                $.ajax({
+                    url: '/api/ProviderApi/ProviderRegister',
+                    type: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    beforeSend: function () {
+                        $("body").mLoading();
+                    },
+                    success: function (data) {
+                        $("body").mLoading('hide');
+                        if (data.Status === "Success") {
+                            localStorage.removeItem("PostalCodeID");
+                            localStorage.removeItem("AddressLine1");
+                            localStorage.removeItem("AddressLine2");
+                            sessionStorage.clear();
+                            localStorage.setItem("P_UserID", data.UserID);
+                            document.cookie = "P_UserID=" + data.UserID + "; max-age=31536000; path=/";
+                            if (data.UserID && window.Android) {
+                                Android.sendUserIdToApp(data.UserID, "provider");
+                            }
+                            $("#SuccessHeader").text("Success");
+                            $("#SuccessDetail").text(data.Message);
+                            $('#SuccessMessage').showMenu();
+                            $('#BtnSuccess').click(function () {
+                                window.location = "/TradespersonApp/Home/";
+                            });
+                        } else {
+                            $("#ErrorHeader").text("Alert");
+                            $("#ErrorDetails").text(data.Message);
+                            $('#ErrorMessage').showMenu();
+                        }
+                    },
+                    error: function (xhr) {
+                        $("body").mLoading('hide');
+                        console.error("Save Error:", xhr.responseText);
+                        alert("Something went wrong while saving.");
+                    }
+                });
+            });
+        }
+        else {
+            window.location = "/TradespersonApp/Home/Login";
+        }
+    });
+
+</script>
+
+<div class="page-content pb-5">
+    <div class="card card-style mt-2 mb-5">
+        <div class="content mb-0">
+            <h3 class="mb-5 text-center">Complete you profile</h3>
+            <form id="myForm" method="post">
+                <input id="MobileNumber" name="MobileNo" type="hidden" />
+                <input id="PostalCodeID" name="PostalCodeID" type="hidden" />
+                <input id="AddressLine1" name="AddressLine1" type="hidden" />
+                <input id="AddressLine2" name="AddressLine2" type="hidden" />
+                <div class="input-style input-style-2">
+                    <span class="color-highlight input-style-1-active">Select your business type</span>
+                    <select id="ProviderType" name="ProviderType" class="form-control" title="Select your business type" required>
+                        <option value="">Select your business type</option>
+                        <option value="Self Employed">Self Employed</option>
+                        <option value="Ltd. Company">Ltd. Company</option>
+                        <option value="Looking to start a business">Looking to start a business</option>
+                    </select>
+                </div>
+                <div class="input-style input-style-2 has-icon">
+                    <i class="input-icon fa fa-user color-theme"></i>
+                    <span class="color-highlight input-style-1-active">Business Name</span>
+                    <em>(required)</em>
+                    <input name="ProviderName" class="form-control" type="text" title="Enter Business Name" required>
+                </div>
+                <div class="input-style input-style-2 has-icon">
+                    <i class="input-icon fa fa-user color-theme"></i>
+                    <span class="color-highlight input-style-1-active">Owner Name</span>
+                    <em>(required)</em>
+                    <input name="OwnerName" class="form-control" type="text" title="Enter Owner Name" required>
+                </div>
+                <div class="input-style input-style-2 has-icon">
+                    <i class="input-icon fa fa-envelope color-theme"></i>
+                    <span class="color-highlight input-style-1-active">Email</span>
+                    <em>(required)</em>
+                    <input name="EmailID" class="form-control" type="email" title="Enter Email ID" required>
+                </div>
+                <div class="input-style input-style-2 has-icon">
+                    <i class="input-icon fa fa-user color-theme"></i>
+                    <span class="color-highlight input-style-1-active">Experience (eg: 10 Year, 6 Month etc.)</span>
+                    <em>(required)</em>
+                    <input name="Experience" class="form-control" type="text" title="Enter Experience" required>
+                </div>
+                <div class="input-style input-style-2 has-icon">
+                    <i class="input-icon fa fa-user color-theme"></i>
+                    <span class="color-highlight input-style-1-active">Team Count</span>
+                    <em>(required)</em>
+                    <input name="TeamCount" class="form-control" type="number" min="0" title="Enter Team Count" required>
+                </div>
+                <a href="#" id="btnsave" class="btn btn-m btn-full mb-3 rounded-xl text-uppercase font-900 shadow-s bg-ba-theme">Register Now</a>
+            </form>
+        </div>
+    </div>
+</div>
+

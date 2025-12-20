@@ -1,0 +1,154 @@
+﻿@model BridgingAfrica.CustomerTbl
+@{
+    ViewBag.Title = "Customer Profile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    #map {
+        margin-bottom: 50px;
+        height: 400px;
+        width: 100%;
+        display: none;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        $("#txtAddress").keyup(function () {
+            var keyword = $("#txtAddress").val();
+            Search = keyword.trim().toLowerCase();
+            var settings = {
+                "url": "/api/HomeApi/GetAreas?keyword=" + encodeURIComponent(Search),
+                "method": "GET",
+                "timeout": 0,
+            };
+            $.ajax(settings).done(function (response) {
+                var html = "";
+                if (response.length > 0) {
+                    let j = 0;
+                    for (var i in response) {
+                        html += '<a onclick="setareaID(' + response[i].Id + ',\'' + response[i].AreaName + '\')" style="padding: 10px;margin-bottom:2px;;cursor: pointer;" class="axil-product-list"><div class="product-content"><h6 class="mb--0">' + response[i].AreaName + '</h6></div></a>';
+                        j++
+                    }
+                    $('#divarearesult').html(html);
+
+                }
+                else {
+                    html = '<h6>No record found</h6>'
+                    $('#divarearesult').html(html);
+                }
+            });
+        });
+    });
+</script>
+<script src="~/assets/js/locationmap.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCcimpXOj5Dp3IYAnXTyiTOOYnLFE-1-to&callback=initMap" async defer></script>
+<main class="main-wrapper">
+    <!-- Start Breadcrumb Area  -->
+    <div class="axil-breadcrumb-area">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 col-md-8">
+                    <div class="inner">
+                        <ul class="axil-breadcrumb">
+                            <li class="axil-breadcrumb-item"><a href="/">Home</a></li>
+                            <li class="separator"></li>
+                            <li class="axil-breadcrumb-item active" aria-current="page">Customer Account</li>
+                        </ul>
+                        <h1 class="title">My Profile</h1>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-4">
+                    <div class="inner">
+                        <div class="bradcrumb-thumb">
+                            <img src="/assets/images/logo/logoheader.png" alt="Image" style="height:140px;" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="axil-dashboard-area mb--80">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="axil-dashboard-area mt--30">
+                    <div class="container">
+                        <div class="axil-dashboard-warp">
+                            <div class="axil-dashboard-author">
+                                <div class="media">
+                                    <div class="media-body">
+                                        <h5 class="title mb-0">Hello @Session["CustomerName"]</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                @Html.Action("_AccountDetail", "CustomerAccount")
+                                <div class="col-xl-9 col-md-8">
+                                    @if (TempData["FailMessage"] != null)
+                                    {
+                                        <div id="fail-alert" class="alert alert-danger text-center">@TempData["FailMessage"]</div>
+                                    }
+                                    @if (TempData["SuccessMessage"] != null)
+                                    {
+                                        <div id="success-alert" class="alert alert-success text-center">@TempData["SuccessMessage"]</div>
+                                    }
+                                    <div class="axil-dashboard-overview">
+                                        <section class="content">
+                                            <form method="post" action="/CustomerAccount/CustomerProfile">
+                                                @Html.AntiForgeryToken()
+                                                @Html.HiddenFor(model => model.Id)
+                                                @Html.HiddenFor(model => model.MobileNo)
+                                                @Html.HiddenFor(model => model.IsActive)
+                                                @Html.HiddenFor(model => model.CreatedDate)
+                                                <div class="row row--10">
+                                                    <div class="col-lg-12">
+                                                        <div class="form-group">
+                                                            <label>First Name</label>
+                                                            @Html.EditorFor(model => model.FirstName, new { htmlAttributes = new { required = "required" } })
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <label>Last Name</label>
+                                                            @Html.EditorFor(model => model.LastName)
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <label>Email Id</label>
+                                                            @Html.EditorFor(model => model.EmailID, new { htmlAttributes = new { type = "email", required = "required", autocomplete = "off" } })
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <label>Suburb/Area</label>
+                                                            <input type="text" id="txtAddress" name="txtAddress" placeholder="Search Suburb/Area" required value="@Model.PostalCodesTbl.AreaName" />
+                                                            <input type="hidden" id="hdAreaID" name="PostalCodeID" value="@Model.PostalCodeID" />
+                                                            <div id="divarearesult"></div>
+                                                        </div>
+                                                        <p id="pRadius" class="mb-2" style="color:green"></p>
+                                                        <div id="map"></div>
+                                                        <div class="form-group">
+                                                            <label>Address Line 1</label>
+                                                            @Html.EditorFor(model => model.AddressLine1, new { htmlAttributes = new { required = "required" } })
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label>Address Line 2</label>
+                                                            @Html.EditorFor(model => model.AddressLine2)
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-12 mt--20">
+                                                        <div class="form-group mb--0">
+                                                            <button type="submit" class="axil-btn btn-bg-primary">Update Now</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </section>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+

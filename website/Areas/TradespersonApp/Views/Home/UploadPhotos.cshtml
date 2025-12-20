@@ -1,0 +1,176 @@
+﻿
+@{
+    ViewBag.Title = "UploadPhotos";
+    Layout = "~/Areas/TradespersonApp/Views/Shared/_ProviderLayout.cshtml";
+
+    BridgingAfricaDBEntities db = new BridgingAfricaDBEntities();
+    int userId = 0;
+    if (Request.Cookies["P_UserID"] != null)
+    {
+        HttpCookie reqCookies = Request.Cookies["P_UserID"];
+        userId = int.Parse(reqCookies.Value);
+    }
+    var images = db.ProviderImagesTbls.Where(a => a.ProviderID == userId).Select(s => new { s.Id, s.ImageUrl }).ToList();
+}
+<script>
+    function readURL(input, img) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                $(img).attr('src', e.target.result);
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+<script>
+    var UserID = localStorage.getItem("P_UserID");   
+    function uploadImage() {
+        const fileInput = document.getElementById("imageFile");
+        const file = fileInput.files[0];
+
+        if (!file) {
+            alert("Please select an image.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("providerId", UserID);
+        formData.append("image", file); 
+
+        fetch("/api/ProviderApi/UploadProviderPhotos", {
+            method: "POST",
+            body: formData,
+            beforeSend: function () {
+                $("body").mLoading();
+            }
+        })
+            .then(response => response.json())
+            .then(data => { 
+                $("body").mLoading('hide');
+                if (data.Status == "Success") {
+                    document.getElementById("SuccessHeader").innerHTML = "Success";
+                    document.getElementById("SuccessDetail").innerHTML = data.Message;
+                    $('#SuccessMessage').showMenu();
+                    $('#BtnSuccess').click(function () {
+                        window.location = "/TradespersonApp/Home/UploadPhotos";
+                    });
+                }
+                else {
+                    document.getElementById("ErrorHeader").innerHTML = "Alert";
+                    document.getElementById("ErrorDetails").innerHTML = data.Message;
+                    $('#ErrorMessage').showMenu();
+                }
+            })
+            .catch(error => {
+                $("body").mLoading('hide');
+                console.error("Error uploading image:", error);
+            });
+    }
+    function setID(id) {
+        $('#menu-confirm').showMenu();
+        $('#btnDelete').attr("onclick", "deleteImage(" + id + ")");
+    }
+    function deleteImage(id) {
+        $.ajax({
+            url: "/api/ProviderApi/DeleteImage?id=" + id,
+            type: 'POST',
+            contentType: 'application/json',
+            beforeSend: function () {
+                $("body").mLoading();
+            },
+            success: function (data) {
+                $("body").mLoading('hide');
+                if (data.Status == "Success") {
+                    document.getElementById("SuccessHeader").innerHTML = "Success";
+                    document.getElementById("SuccessDetail").innerHTML = data.Message;
+                    $('#SuccessMessage').showMenu();
+                    $('#BtnSuccess').click(function () {
+                        window.location = "/TradespersonApp/Home/UploadPhotos";
+                    });
+                }
+                else {
+                    document.getElementById("ErrorHeader").innerHTML = "Alert";
+                    document.getElementById("ErrorDetails").innerHTML = data.Message;
+                    $('#ErrorMessage').showMenu();
+                }
+            },
+            error: function (data) {
+                alert(data.Message);
+                $("body").mLoading('hide');
+            }
+        });
+    }   
+</script>
+<div class="page-content">
+    <div class="page-title page-title-small">
+        <h2><a href="/TradespersonApp/Home/MyAccount"><i class="fa fa-arrow-left"></i></a>Upload Photos</h2>
+    </div>
+    <div class="card header-card shape-rounded" data-card-height="180">
+        <div class="card-overlay bg-ba-theme opacity-95"></div>
+        <div class="card-overlay dark-mode-tint"></div>
+        <div class="card-bg"></div>
+    </div>
+    <div class="card card-style">
+        <div class="content">
+            <h3>Photos Gallery</h3>
+            <p>
+                A gallery showcasing for your profile to customer. Maximum 5 images you can upload.
+            </p>
+            <a href="#" class="btn btn-m mb-0 mr-3 rounded-s text-uppercase font-700 bg-ba-theme" data-menu="menu-upload">
+                <span>Upload Photos <i class="fa fa-camera"></i></span>
+            </a>
+        </div>
+        <div class="content">
+            <div class="row text-center row-cols-3 mb-0">
+                @foreach (var item in images)
+                {
+                    <div class="col mb-2">
+                        <a data-lightbox="gallery-1" href="@item.ImageUrl">
+                            <img src="@item.ImageUrl" data-src="@item.ImageUrl" class="preload-img img-fluid rounded-xs" alt="img" style="height:90px;">
+                        </a>
+                        <a href="#" onclick="setID(@item.Id)" class="btn btn-xs mt-1 shadow-l rounded-s text-uppercase font-900 bg-red1-dark">
+                            <i class="fa fa-trash"></i>
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="menu-upload" class="menu menu-box-modal menu-box-detached rounded-m" data-menu-height="330" data-menu-width="95%">
+    <form id="uploadForm">
+        <div class="boxed-text-xl" style="margin-bottom: 55px;">
+            <h4 class="m-3 font-500">Upload Photos</h4>
+            <div class="file-data">
+                <img src="/assets/images/NoImage.png" style="width:130px;height:130px;margin-top:0px!important">
+                <input id="imageFile" type="file" class="upload-file bg-ba-theme shadow-s rounded-s" accept="jpg,.png,.jpeg" />
+                <p class="upload-file-text color-white">Select Photo</p>
+            </div>
+        </div>
+        <div class="row mr-3 ml-3 mt-3 mb-2">
+            <div class="col-6">
+                <a id="btnUpload" href="#" onclick="uploadImage()" class="btn btn-m btn-full button-s shadow-l rounded-s text-uppercase font-900 bg-ba-theme">Upload</a>
+            </div>
+            <div class="col-6">
+                <a href="#" class="close-menu btn btn-m btn-full button-s shadow-l rounded-s text-uppercase font-900 bg-red1-dark">Close</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div id="menu-confirm" class="menu menu-box-modal rounded-m" data-menu-height="150" data-menu-width="330">
+    <h1 class="text-center mt-3 pb-1">Are you sure?</h1>
+    <p class="boxed-text-l">
+        Are you sure want to delete this service
+    </p>
+    <div class="row mr-3 ml-3 mb-0">
+        <div class="col-6">
+            <a id="btnDelete" href="#" class="close-menu btn btn-sm btn-full button-s shadow-l rounded-s text-uppercase font-900 bg-green1-dark">YES</a>
+        </div>
+        <div class="col-6">
+            <a href="#" class="close-menu btn btn-sm btn-full button-s shadow-l rounded-s text-uppercase font-900 bg-red1-dark">NO</a>
+        </div>
+    </div>
+</div>

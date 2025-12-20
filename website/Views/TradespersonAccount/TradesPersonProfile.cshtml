@@ -1,0 +1,228 @@
+﻿@model BridgingAfrica.ProviderTbl
+@{
+    ViewBag.Title = "TradesPersonProfile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    #map {
+        margin-bottom: 50px;
+        height: 400px;
+        width: 100%;
+        display: none;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        $("#txtAddress").keyup(function () {
+            var keyword = $("#txtAddress").val();
+            Search = keyword.trim().toLowerCase();
+            var settings = {
+                "url": "/api/HomeApi/GetAreas?keyword=" + encodeURIComponent(Search),
+                "method": "GET",
+                "timeout": 0,
+            };
+            $.ajax(settings).done(function (response) {
+                var html = "";
+                if (response.length > 0) {
+                    let j = 0;
+                    for (var i in response) {
+                        html += '<a onclick="setareaID(' + response[i].Id + ',\'' + response[i].AreaName + '\')" style="padding: 10px;margin-bottom:2px;;cursor: pointer;" class="axil-product-list"><div class="product-content"><h6 class="mb--0">' + response[i].AreaName + '</h6></div></a>';
+                        j++
+                    }
+                    $('#divarearesult').html(html);
+
+                }
+                else {
+                    html = '<h6>No record found</h6>'
+                    $('#divarearesult').html(html);
+                }
+            });
+        });
+    });
+
+</script>
+<script src="~/assets/js/locationmap.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCcimpXOj5Dp3IYAnXTyiTOOYnLFE-1-to&callback=initMap" async defer></script>
+<main class="main-wrapper">
+    <!-- Start Breadcrumb Area  -->
+    <div class="axil-breadcrumb-area">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 col-md-8">
+                    <div class="inner">
+                        <ul class="axil-breadcrumb">
+                            <li class="axil-breadcrumb-item"><a href="/">Home</a></li>
+                            <li class="separator"></li>
+                            <li class="axil-breadcrumb-item active" aria-current="page">My Profile</li>
+                        </ul>
+                        <h1 class="title">My Profile</h1>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-4">
+                    <div class="inner">
+                        <div class="bradcrumb-thumb">
+                            <img src="/assets/images/logo/logoheader.png" alt="Image" style="height:140px;" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="axil-dashboard-area mb--80">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="axil-dashboard-area mt--30">
+                    <div class="container">
+                        <div class="axil-dashboard-warp">
+                            <div class="axil-dashboard-author">
+                                <div class="media">
+                                    <div class="media-body">
+                                        <h5 class="title mb-0">Hello @Session["ProviderName"]</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                @Html.Action("_AccountDetail", "TradespersonAccount")
+                                <div class="col-xl-9 col-md-8">
+                                    @if (TempData["FailMessage"] != null)
+                                    {
+                                        <div id="fail-alert" class="alert alert-danger text-center">@TempData["FailMessage"]</div>
+                                    }
+                                    @if (TempData["SuccessMessage"] != null)
+                                    {
+                                        <div id="success-alert" class="alert alert-success text-center">@TempData["SuccessMessage"]</div>
+                                    }
+                                    <div class="axil-dashboard-overview">
+                                        <section class="content">
+                                            <form method="post" action="/TradespersonAccount/TradesPersonProfile" enctype="multipart/form-data">
+                                                @Html.AntiForgeryToken()
+                                                @Html.HiddenFor(model => model.Id)
+                                                @Html.HiddenFor(model => model.ProviderType)
+                                                @Html.HiddenFor(model => model.ContactNo)
+                                                @Html.HiddenFor(model => model.AverageRating)
+                                                @Html.HiddenFor(model => model.BannerImage)
+                                                @Html.HiddenFor(model => model.ProfileImage)
+                                                @Html.HiddenFor(model => model.TradeTestCerticate)
+                                                @Html.HiddenFor(model => model.PoliceClearance)
+                                                @Html.HiddenFor(model => model.ReferenceDoc)
+                                                @Html.HiddenFor(model => model.IsAvailable)
+                                                @Html.HiddenFor(model => model.IsSponsored)
+                                                @Html.HiddenFor(model => model.IsVerified)
+                                                @Html.HiddenFor(model => model.IsActive)
+                                                @Html.HiddenFor(model => model.StatusID)
+                                                @Html.HiddenFor(model => model.CreateDate)
+                                                <div class="row row--10">
+                                                    <div class="col-lg-6">
+                                                        <div class="form-group">
+                                                            <label>Business Name</label>
+                                                            @Html.EditorFor(model => model.ProviderName, new { htmlAttributes = new { required = "required" } })
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <label>Owner Name</label>
+                                                            @Html.EditorFor(model => model.OwnerName, new { htmlAttributes = new { required = "required" } })
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <label>Email Id</label>
+                                                            @Html.EditorFor(model => model.EmailID, new { htmlAttributes = new { required = "required", autocomplete = "off" } })
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <label>Pricing (eg: $30 visit charge etc.)</label>
+                                                            @Html.EditorFor(model => model.Pricing, new { htmlAttributes = new {placeholder = "Enter your pricing." } })
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <label>Experience (eg: 10 Year, 6 Month etc.)</label>
+                                                            @Html.EditorFor(model => model.Experience, new { htmlAttributes = new { required = "required" } })
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <label>Short Bio of your business</label>
+                                                            @Html.TextAreaFor(model => model.ShortBio)
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label>Total Team Members</label>
+                                                            @Html.TextBoxFor(model => model.TeamCount, new { @type = "number", @min = "0", required = "required" })
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-lg-6">
+                                                        <div class="form-group">
+                                                            <label>Set Business Area</label>
+                                                            <input type="text" id="txtAddress" name="txtAddress" placeholder="Search your business area" required value="@Model.PostalCodesTbl.AreaName" />
+                                                            <input type="hidden" id="hdAreaID" name="PostalCodeID" value="@Model.PostalCodeID" />
+                                                            <div id="divarearesult"></div>
+                                                        </div>
+                                                        <p id="pRadius" class="mb-2" style="color:green"></p>
+                                                        <div id="map"></div>
+                                                        <div class="form-group">
+                                                            <label>Address Line 1</label>
+                                                            @Html.EditorFor(model => model.AddressLine1, new { htmlAttributes = new { required = "required" } })
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label>Address Line 2</label>
+                                                            @Html.EditorFor(model => model.AddressLine2)
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label>Website</label>
+                                                            @Html.EditorFor(model => model.Website, new { htmlAttributes = new { @class = "form-control" } })
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label>Trade Test Certificate (pdf, image)</label>
+                                                            <input id="TradeTestCerticate" type="file" name="TradeTestCerticate" class="form-control p-4" />
+                                                            <a href="@Model.TradeTestCerticate" target="_blank"
+                                                               style="@(string.IsNullOrEmpty(Model.TradeTestCerticate) ? "display:none;" : "")">
+                                                                View Current File
+                                                            </a>
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <label>Police Clearance Certificate (pdf, image)</label>
+                                                            <input id="PoliceClearance" type="file" name="PoliceClearance" class="form-control p-4" />
+                                                            <a href="@Model.PoliceClearance" target="_blank"
+                                                               style="@(string.IsNullOrEmpty(Model.PoliceClearance) ? "display:none;" : "")">
+                                                                View Current File
+                                                            </a>
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <label>Reference letter from a rated company(pdf, image)</label>
+                                                            <input id="ReferenceDoc" type="file" name="ReferenceDoc" class="form-control p-4" />
+                                                            <a href="@Model.ReferenceDoc" target="_blank"
+                                                               style="@(string.IsNullOrEmpty(Model.ReferenceDoc) ? "display:none;" : "")">
+                                                                View Current File
+                                                            </a>
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <label>Banner Image : (Size should be 1500 * 250 pixels)</label>
+                                                            <input id="BannerImage" onchange="readURL(this,'#imgpreview');" type="file" name="BannerImage" class="form-control p-4" />
+                                                            <img id="imgpreview" class="img-thumbnail" style="width:100px" alt="Preview" src="@Model.BannerImage" />
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <label>Profile Image : (Size should be 300 * 300 pixels)</label>
+                                                            <input id="ProfileImage" onchange="readURL(this,'#imgpreview1');" type="file" name="ProfileImage" class="form-control p-4" />
+                                                            <img id="imgpreview1" class="img-thumbnail" style="width:60px" alt="Preview" src="@Model.ProfileImage" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-12 mt--20">
+                                                        <div class="form-group mb--0">
+                                                            <button type="submit" class="axil-btn btn-bg-primary">Update Now</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </section>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+

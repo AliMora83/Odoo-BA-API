@@ -1,0 +1,105 @@
+﻿@model BridgingAfrica.ProviderJobsTbl
+@{
+    ViewBag.Title = "MyJobDetails";
+    Layout = "~/Areas/TradespersonApp/Views/Shared/_ProviderLayout.cshtml";
+}
+
+<script>
+    function CreateInvoice() {
+        var jobID = $('#jobId').val();
+        var amount = 0;
+        var custID = $('#custID').val();
+        var JobDetail = $('#JobDetail').val();
+        //if (amount == "") {
+        //    alert('Please Enter Finalized Amount');
+        //}
+        //else {
+            $.ajax({
+                url: '/api/ProviderApi/CreateJobInvoice', 
+                type: "Post",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify({ jobID: jobID, amount: amount, JobDetail: JobDetail, CustomerID: custID }),
+                beforeSend: function () {
+                    $("body").mLoading();
+                },
+                success: function (json) {
+                    $("body").mLoading('hide');
+                    if (json.Status == "Success") {
+                        $("#SuccessHeader").text("Success");
+                        $("#SuccessDetail").text(json.Message);
+                        $('#SuccessMessage').showMenu();
+                        $('#BtnSuccess').click(function () {
+                            window.location = "/TradespersonApp/Home/MyJobs";
+                        });
+                    }
+                    else {
+                        $("#ErrorHeader").text("Alert");
+                        $("#ErrorDetails").text(json.Message);
+                        $('#ErrorMessage').showMenu();
+                    }
+                },
+            });
+        //}
+    }
+</script>
+<div class="page-content">
+    <div class="page-title page-title-small">
+        <h2><a href="/TradespersonApp/Home/MyJobs"><i class="fa fa-arrow-left"></i></a>Job Details</h2>
+    </div>
+    <div class="card header-card shape-rounded" data-card-height="150">
+        <div class="card-overlay bg-ba-theme opacity-95"></div>
+        <div class="card-overlay dark-mode-tint"></div>
+        <div class="card-bg"></div>
+    </div>
+    <div class="card card-style mt-2 mb-2">
+        <div class="page-title page-title-small mb-2">
+            <h4 class="text-center font-600">Work Details</h4>
+        </div>
+    </div>
+    <div class="card card-style">
+        <div class="page-title page-title-small mb-2">
+            <p class="text-center">@Model.ProviderEnquiryTbl.CategoryTbl.CategoryName <i class="fa fa-chevron-circle-right"></i> @Model.ProviderEnquiryTbl.SubCategoryTbl.SubCategoryName</p>
+            <h4 class="text-center font-500">@Model.ProviderEnquiryTbl.ServiceTbl.ServiceName</h4>
+        </div>
+        <div class="content mb-0 mt-1 pt-2 mb-2">
+            <input type="hidden" id="jobId" value="@Request.QueryString["jobID"]" />
+            <input type="hidden" id="custID" value="@Model.ProviderEnquiryTbl.CustomerID" />
+            <div class="input-style input-style-2 has-icon" style="display:none">
+                <i class="input-icon fa fa-dollar-sign color-theme"></i>
+                <span class="color-highlight input-style-1-active">Finalized amount</span>
+                <em>(required)</em>
+                <input value="@Model.Amount" @(Model.StatusID == 4 ? "disabled=\"disabled\"" : "") id="amount" name="amount" class="form-control" type="number" title="Enter Finalized amount" required />
+            </div>
+            <div class="input-style input-style-2">
+                <span class="color-highlight input-style-1-active">Job Detail</span>
+                <textarea id="JobDetail" @(Model.StatusID == 4 ? "disabled=\"disabled\"" : "") name="JobDetail" style="height:100px;" class="form-control" title="Modify Job Detail" required>@Model.JobDetail</textarea>
+            </div>
+            @if (Model.StatusID == 4)
+            {
+                <h6 class="text-center font-500">This job is completed</h6>
+                @*<a href="/TradespersonApp/Home/JobInvoicePreview?jobid=@Model.Id" class="btn btn-full btn-m shadow-l rounded-s bg-ba-theme text-uppercase font-900 mt-4 m-2">View Invoice</a>*@
+            }
+            else
+            {
+                <a onclick="CreateInvoice()" href="#" class="btn btn-full btn-m shadow-l rounded-s bg-ba-theme text-uppercase font-900 mt-4 m-2">Complete Job?</a>
+                @*<p class="text-center">After create invoice you can view invoice in completed job.</p>*@
+            }
+        </div>
+    </div>
+    <div class="card card-style mt-2 mb-2">
+        <div class="page-title page-title-small mb-2">
+            <h4 class="text-center font-600">Customer Information</h4>
+        </div>
+    </div>
+    <div class="card card-style">
+        <div class="content mb-0 mt-1 pt-2 mb-2">
+            <h6 class="font-500">Name: @Model.ProviderEnquiryTbl.CustomerTbl.FirstName @Model.ProviderEnquiryTbl.CustomerTbl.LastName </h6>
+            <h6 class="font-500">Contact No: @Model.ProviderEnquiryTbl.CustomerTbl.MobileNo </h6>
+            <h6 class="font-500">Address: @Model.ProviderEnquiryTbl.CustomerTbl.PostalCodesTbl.AreaName, @Model.ProviderEnquiryTbl.CustomerTbl.AddressLine1
+            <br />@Model.ProviderEnquiryTbl.CustomerTbl.AddressLine2</h6>
+           
+        </div>
+    </div>
+</div>
+

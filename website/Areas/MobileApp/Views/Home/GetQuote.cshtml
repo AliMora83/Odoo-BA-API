@@ -1,0 +1,129 @@
+﻿
+@{
+    ViewBag.Title = "GetQuote";
+    Layout = "~/Areas/MobileApp/Views/Shared/_LayoutMain.cshtml";
+}
+
+<script>
+    $(document).ready(function () {
+        var pid = @Request.QueryString["pid"];
+        var serviceid = @Request.QueryString["serviceid"];
+        var cid = @Request.QueryString["cid"];
+        var scid = @Request.QueryString["scid"];
+        var postalcode = @Request.QueryString["PostalCodeID"];
+        var UserID = localStorage.getItem("UserID");
+        if (UserID == null) {
+            localStorage.setItem("pid", pid);
+            localStorage.setItem("serviceid", serviceid);
+            localStorage.setItem("scid", scid);
+            localStorage.setItem("cid", cid);
+            localStorage.setItem("postalcode", postalcode);
+            window.location = "/MobileApp/Home/MobileVerification";
+        }
+        else {
+            $("#CustomerID").val(UserID);
+            $("#ServiceID").val(serviceid);
+            localStorage.removeItem("pid");
+            localStorage.removeItem("serviceid");
+            localStorage.removeItem("scid");
+            localStorage.removeItem("cid");
+            localStorage.removeItem("postalcode");
+        }
+        $.ajax({
+            url: '/api/HomeApi/GetProviderDetails?pid=' + pid,
+            type: "get",
+            dataType: "JSON",
+            success: function (json) {
+                $("#ProviderID").val(json.Id);
+                $("#ProviderName").html(json.ProviderName);
+            },
+        });
+
+        $("#btnsave").click(function (e) {
+            var IsValid = checkvalues();
+            if (IsValid != "1") {
+                IsValid.focus();
+                $('#ErrorToast').html(IsValid[0].title);
+                $('#ErrorToast').toast('show');
+            }
+            else {
+                e.preventDefault();
+                var valdata = $("#myForm").serialize();
+                $.ajax({
+                    url: '/api/HomeApi/SubmitEnquiry',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: valdata,
+                    beforeSend: function () {
+                        $("body").mLoading();
+                    },
+                    success: function (data) {
+                        $("body").mLoading('hide');
+                        if (data.Status == "Success") {
+                            document.getElementById("SuccessHeader").innerHTML = "Success";
+                            document.getElementById("SuccessDetail").innerHTML = data.Message;
+                            $('#SuccessMessage').showMenu();
+                            $('#BtnSuccess').click(function () {
+                                window.location = "/MobileApp/Home/myServices"
+                            });
+                        }
+                        else {
+                            document.getElementById("ErrorHeader").innerHTML = "Alert";
+                            document.getElementById("ErrorDetails").innerHTML = data.Message;
+                            $('#ErrorMessage').showMenu();
+                        }
+                    },
+                    error: function (data) {
+                        $("body").mLoading('hide');
+                        alert(data.Message);
+                    }
+                });
+            }
+        });
+    });
+</script>
+<div class="page-content">
+    <div class="page-title page-title-small">
+        <h2><a href="/MobileApp/Home/ServiceDetails?scid=@Request.QueryString["scid"]&cid=@Request.QueryString["cid"]&PostalCodeID=@Request.QueryString["PostalCodeID"]&serviceid=@Request.QueryString["serviceid"]&pid=@Request.QueryString["pid"]"><i class="fa fa-arrow-left"></i></a>Request a Service</h2>
+    </div>
+    <div class="card header-card shape-rounded" data-card-height="180">
+        <div class="card-overlay bg-ba-theme opacity-95"></div>
+        <div class="card-overlay dark-mode-tint"></div>
+        <div class="card-bg"></div>
+    </div>
+
+    <div class="card card-style">
+        <div class="content">
+            <h4 class="mb-1 text-center" id="ProviderName"></h4>
+        </div>
+    </div>
+    <div class="card card-style">
+        <div class="content mb-0">
+            <h3 class="mb-3">Job Details</h3>
+            <form id="myForm" method="post">
+                <input type="hidden" name="ProviderID" id="ProviderID" />
+                <input type="hidden" name="CustomerID" id="CustomerID" />
+                <input type="hidden" name="ServiceID" id="ServiceID" />
+                <div class="input-style input-style-2">
+                    <span class="color-highlight input-style-1-active">Describe your job</span>
+                    <em>(required)</em>
+                    <textarea name="JobDetail" style="height:150px" class="form-control" title="Describe your job" required></textarea>
+                </div>
+                <div class="input-style input-style-2">
+                    <span class="color-highlight input-style-1-active">When would you like the job to start?</span>
+                    <em><i class="fa fa-angle-down"></i></em>
+                    <select class="form-control" name="WorkerUrgency" required title="When would you like the job to start?">
+                        <option value="">Select a option</option>
+                        <option>I'm flexible on the start date</option>
+                        <option>It's urgent (within 48 hours)</option>
+                        <option>Within 2 weeks</option>
+                        <option>Within 1 month</option>
+                        <option>I'm budgeting / researching</option>
+                    </select>
+                </div>
+                <a href="#" id="btnsave" class="btn btn-m btn-full mb-3 rounded-xl text-uppercase font-900 shadow-s bg-ba-theme">Submit</a>
+            </form>
+        </div>
+    </div>
+</div>
+

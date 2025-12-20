@@ -1,0 +1,109 @@
+﻿
+@{
+    ViewBag.Title = "ManageAccreditation";
+    Layout = "~/Areas/TradespersonApp/Views/Shared/_ProviderLayout.cshtml";
+}
+
+<script>
+    var UserID = localStorage.getItem("P_UserID");
+    function getAccreditations() {
+        var settings = {
+            "url": "/api/ProviderApi/GetProviderAccreditations?providerID=" + UserID,
+            "method": "GET",
+            //"headers": {
+            //    "Authorization": "Bearer " + Token + ":" + userID
+            //},
+            "beforeSend": function () {
+                $("body").mLoading();
+            },
+            "timeout": 0,
+        };
+        $.ajax(settings).done(function (response) {
+            $("body").mLoading('hide');
+            if (response.length > 0) {
+                var html = "";
+                for (var i in response) {
+                    html += '<div class="card card-style mb-1 p-2"><div class="row mb-0"><div class="col-2"><img style="height: 60px;width:60px" src="' + response[i].Logo + '"></div><div class="col-7"> <h6 class="font-500 mb-1 ml-2">' + response[i].AccreditationName + '</h6><h6 style="color:' + response[i].ColorCode + '" class="font-500 mb-1 ml-2">' + response[i].StatusName + '</h6><h6 class="font-500 mb-1 ml-2">' + response[i].CreatedDate + '</h6></div><div class="col-3"><a onclick="setID(' + response[i].Id + ')" data-menu="menu-confirm" class="btn btn-xxs mb-0 mr-3 rounded-s text-uppercase font-700 bg-red2-light"><i class="fa fa-trash"></i> Delete</a></div></div></div>';
+                }
+                $('#data').html(html);
+            }
+            else {
+                $('#data').html('<div class="card card-style mb-1 p-2"><div class="text-center">No Record Found</div></div>');
+            }
+        });
+    }
+    $(document).ready(function () {
+        getAccreditations();
+    });
+
+    function setID(sid) {
+        $('#menu-confirm').showMenu();
+        $('#btnDelete').attr("onclick", "deleteitem(" + sid + ")");
+    }
+
+    function deleteitem(sid) {
+        $.ajax({
+            url: "/api/ProviderApi/DeleteAccreditations?sid=" + sid,
+            type: 'POST',
+            //headers: {
+            //    "Authorization": "Bearer " + Token + ":" + userID
+            //},
+            contentType: 'application/json',
+            beforeSend: function () {
+                $("body").mLoading();
+            },
+            success: function (data) {
+                $("body").mLoading('hide');
+                if (data.Status == "Success") {
+                    document.getElementById("SuccessHeader").innerHTML = "Success";
+                    document.getElementById("SuccessDetail").innerHTML = data.Message;
+                    $('#SuccessMessage').showMenu();
+                    getAccreditations();
+                }
+                else {
+                    document.getElementById("ErrorHeader").innerHTML = "Alert";
+                    document.getElementById("ErrorDetails").innerHTML = data.Message;
+                    $('#ErrorMessage').showMenu();
+                }
+            },
+            error: function (data) {
+                alert(data.Message);
+                $("body").mLoading('hide');
+            }
+        });
+    }
+</script>
+
+<div class="page-content">
+    <div class="page-title page-title-small">
+        <h2><a href="/TradespersonApp/Home/MyAccount" target="_self" data-back-button><i class="fa fa-arrow-left"></i></a>Your Accreditations</h2>
+    </div>
+    <div class="card header-card shape-rounded" data-card-height="150">
+        <div class="card-overlay bg-ba-theme opacity-95"></div>
+        <div class="card-overlay dark-mode-tint"></div>
+        <div class="card-bg"></div>
+    </div>
+    <div class="card card-style mb-1 p-2">
+        <a href="/TradespersonApp/Home/AddAccreditation" class="btn btn-m mb-0 mr-3 rounded-s text-uppercase font-700 bg-ba-theme"><i class="fa fa-plus"></i> Request New</a>
+    </div>
+    <h5 class="text-center font-500 mt-3 mb-3">All your Accreditations</h5>
+    <div id="data">
+
+    </div>
+</div>
+
+<div id="menu-confirm" class="menu menu-box-modal rounded-m" data-menu-height="150" data-menu-width="330">
+    <h1 class="text-center mt-3 pb-1">Are you sure?</h1>
+    <p class="boxed-text-l">
+        Are you sure want to delete this Accreditation
+    </p>
+    <div class="row mr-3 ml-3 mb-0">
+        <div class="col-6">
+            <a id="btnDelete" href="#" class="close-menu btn btn-sm btn-full button-s shadow-l rounded-s text-uppercase font-900 bg-green1-dark">YES</a>
+        </div>
+        <div class="col-6">
+            <a href="#" class="close-menu btn btn-sm btn-full button-s shadow-l rounded-s text-uppercase font-900 bg-red1-dark">NO</a>
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,92 @@
+﻿
+@{
+    ViewBag.Title = "PaymentDetails";
+    Layout = "~/Areas/TradespersonApp/Views/Shared/_ProviderLayout.cshtml";
+
+    bool isconfirmed = false;
+    if (Request.QueryString["qid"] != null)
+    {
+        BridgingAfricaDBEntities db = new BridgingAfricaDBEntities();
+        int qid = int.Parse(Request.QueryString["qid"]);
+        var isconfirm = db.ProviderEnquiryTbls.Where(s => s.Id == qid).Select(s => s.IsConfirmed).FirstOrDefault();
+        isconfirmed = isconfirm;
+    }
+}
+<script>
+    function sendMessage(cid, qid) {
+        $.ajax({
+            url: '/api/ProviderApi/SendConfirmationMessage?cid=' + cid + '&qid=' + qid,
+            type: 'POST',
+            beforeSend: function () {
+                $("body").mLoading();
+            },
+            success: function (response) {
+                $("body").mLoading('hide');
+                if (response.Status == "Success") {
+                    document.getElementById("SuccessHeader").innerHTML = "Success";
+                    document.getElementById("SuccessDetail").innerHTML = response.Message;
+                    $('#SuccessMessage').showMenu();
+                    $('#BtnSuccess').click(function () {
+                        window.location = "/TradespersonApp/Home/MyServices"
+                    });
+                }
+                else {
+                    document.getElementById("ErrorHeader").innerHTML = "Alert!";
+                    document.getElementById("ErrorDetails").innerHTML = response.Message;
+                    $('#ErrorMessage').showMenu();
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Error:", error);
+                alert("An error occurred while sending the message.");
+            }
+        });
+    }
+</script>
+<div class="page-content pb-0">
+    <div class="card card-style mt-2 mb-2">
+        <div class="page-title page-title-small mb-2">
+            <h4 class="text-center font-600">Payment Details</h4>
+        </div>
+    </div>
+    <div class="card card-style">
+        <div class="page-title page-title-small mb-1">
+            <h4 class="text-center font-500">Send Confirmation</h4>
+        </div>
+        <div class="content mb-0 mt-1 pt-2 mb-2">
+            @if (isconfirmed == false)
+            {
+                <p class="text-center">
+                    Would you like to confirm this service request to customer before making payment. We will send a message to customer to confirm, then you can make payment.
+                </p>
+                <div class="row mr-3 ml-3 mb-5">
+                    <div class="col-8">
+                        <a onclick="sendMessage(@Request.QueryString["cid"], @Request.QueryString["qid"])" href="#" class="btn btn-sm btn-full button-s shadow-l rounded-s text-uppercase font-900 bg-ba-theme">Send Message</a>
+                    </div>
+                    <div class="col-4">
+                        <a href="/TradespersonApp/Home/MyServices" class="btn btn-sm btn-full button-s shadow-l rounded-s text-uppercase font-900 bg-red1-dark">Cancel</a>
+                    </div>
+                </div>
+                <div class="divider-icon divider-margins bg-ba-theme"><i class="fa font-17" style="background-color: #707070;">OR</i></div>
+            }
+            <h4 class="text-center font-500">Make platform fee payment</h4>
+            <p class="text-center">Please pay $5 as platform fee to view customer details.</p>
+            <h4 class="text-center font-500 mb-3">Amount: $5</h4>
+            @if (Request.QueryString["status"] != null && Request.QueryString["status"] == "failed")
+            {
+                <h4 class="mt-3 mb-3 text-center">Payment failed, please retry.</h4>
+                <a href="/TradespersonApp/Home/MakePayment?qid=@Request.QueryString["qid"]" class="btn btn-full btn-m shadow-l rounded-s bg-ba-theme text-uppercase font-900 top-20 m-2">
+                    Pay Now
+                </a>
+            }
+            else
+            {
+                <p class="mt-2 mb-2 text-center">We will redirect you to the payment gateway website.</p>
+                <a href="/TradespersonApp/Home/MakePayment?qid=@Request.QueryString["qid"]" class="btn btn-full btn-m shadow-l rounded-s bg-ba-theme text-uppercase font-900 top-20 m-2">
+                    Pay Now
+                </a>
+            }
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,353 @@
+﻿
+@{
+    ViewBag.Title = "TRADEPERSON DASHBOARD";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+
+    BridgingAfricaDBEntities db = new BridgingAfricaDBEntities();
+    int userId = 0;
+    if (Session["P_UserID"] != null)
+    {
+        string uid = Session["P_UserID"].ToString();
+        userId = int.Parse(uid);
+    }
+    var totalLeads = db.ProviderEnquiryTbls.Where(p => p.IsActive == true && p.ProviderID == userId).Count();
+
+    var pendingQuotations = db.ProviderEnquiryTbls.Where(p => p.IsActive == true && p.ProviderID == userId && p.StatusID == 1).Select(p => new { p.Id, p.CategoryTbl.CategoryName, p.SubCategoryTbl.SubCategoryName, p.ServiceTbl.ServiceName, p.CustomerTbl.FirstName, p.CustomerTbl.MobileNo, p.IsPaid }).OrderByDescending(p => p.Id).ToList();
+
+    //var pendingJobs = db.ProviderJobsTbls.Where(p => p.IsActive == true && p.ProviderEnquiryTbl.ProviderID == userId && p.StatusID == 1).Select(p => new { p.Id, p.ProviderEnquiryTbl.CategoryTbl.CategoryName, p.ProviderEnquiryTbl.SubCategoryTbl.SubCategoryName, p.ProviderEnquiryTbl.ServiceTbl.ServiceName, p.ProviderEnquiryTbl.CustomerTbl.FirstName, p.ProviderEnquiryTbl.CustomerTbl.MobileNo }).OrderByDescending(p => p.Id).ToList();
+
+    var providerDetails = db.ProviderTbls.Where(c => c.IsActive == true && c.Id == userId).Select(s => new { s.Id, s.ProviderName, s.Pricing, s.ShortBio, s.TradeTestCerticate, s.PoliceClearance, s.ReferenceDoc, s.ProfileImage, s.BannerImage, s.StatusID, s.IsAvailable, s.IsVerified, ServicesCount = s.ProviderServicesTbls.Count(ss => ss.IsActive)}).FirstOrDefault();
+}
+<style>
+    .font-12 {
+        font-size: 12px !important;
+    }
+</style>
+<script>
+    function AvailabilityToggle() {
+        var checkbox = $("#switch-b");
+        var isChecked = $(checkbox).is(':checked');
+        var providerId = $(checkbox).data('pro-id');
+        $.ajax({
+            url: '/api/ProviderApi/ToggleAvailability?providerId=' + providerId + '&isAvailable=' + isChecked,
+            type: 'POST',
+            contentType: 'application/json',
+            success: function (response) {
+                if (response.Status == "1") {
+                    alert(response.Message);
+
+                } else {
+                    alert(response.Message);
+                }
+            },
+            error: function () {
+                alert('An error occurred while updating notification status.');
+            }
+        });
+    }
+</script>
+<main class="main-wrapper">
+    <!-- Start Breadcrumb Area  -->
+    <div class="axil-breadcrumb-area">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 col-md-8">
+                    <div class="inner">
+                        <ul class="axil-breadcrumb">
+                            <li class="axil-breadcrumb-item"><a href="/">Home</a></li>
+                            <li class="separator"></li>
+                            <li class="axil-breadcrumb-item active" aria-current="page">Customer Account</li>
+                        </ul>
+                        <h1 class="title">Dashboard</h1>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-4">
+                    <div class="inner">
+                        <div class="bradcrumb-thumb">
+                            <img src="/assets/images/logo/logoheader.png" alt="Image" style="height:140px;" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="axil-dashboard-area mb--80">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="axil-dashboard-area mt--30">
+                    <div class="container">
+                        <div class="axil-dashboard-warp">
+                            <div class="axil-dashboard-author">
+                                <div class="media">
+                                    <div class="media-body">
+                                        <h5 class="title mb-0">Hello @Session["ProviderName"]</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                @Html.Action("_AccountDetail", "TradespersonAccount")
+                                <div class="col-xl-9 col-md-8">
+                                    <div class="axil-dashboard-overview">
+                                        <section class="content">
+                                            <div class="row">
+                                                <div class="col-lg-3">
+                                                    <div class="dashboard">
+                                                        <h3 class="mb-2">@ViewBag.PendingQuotations</h3>
+                                                        <h6>Pending Requests</h6>
+                                                        <a href="/Account/MyOrders" class="small-box-footer">
+                                                            View Details <i class="fa fa-arrow-circle-right"></i>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                                @*<div class="col-lg-3">
+                                                        <div class="dashboard">
+                                                            <h3 class="mb-2">@ViewBag.PendingJobs</h3>
+                                                            <h6>Pending Jobs</h6>
+                                                            <a href="/Account/Address" class="small-box-footer">
+                                                                View Details <i class="fa fa-arrow-circle-right"></i>
+                                                            </a>
+                                                        </div>
+                                                    </div>*@
+                                                <div class="col-lg-3">
+                                                    <div class="dashboard">
+                                                        <h3 class="mb-2">@ViewBag.TotalQuotations</h3>
+                                                        <h6>Total Requests</h6>
+                                                        <a href="/Account/MyOrders" class="small-box-footer">
+                                                            View Details <i class="fa fa-arrow-circle-right"></i>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                                @*<div class="col-lg-3">
+                                                    <div class="dashboard">
+                                                        <h3 class="mb-2">@ViewBag.TotalJobs</h3>
+                                                        <h6>Total Jobs</h6>
+                                                        <a href="/Account/Address" class="small-box-footer">
+                                                            View Details <i class="fa fa-arrow-circle-right"></i>
+                                                        </a>
+                                                    </div>
+                                                </div>*@
+                                            </div>
+                                            @if (string.IsNullOrEmpty(providerDetails.ShortBio) || string.IsNullOrEmpty(providerDetails.TradeTestCerticate) || string.IsNullOrEmpty(providerDetails.PoliceClearance) || string.IsNullOrEmpty(providerDetails.ReferenceDoc) || providerDetails.IsVerified == false || providerDetails.StatusID == 1 || providerDetails.ServicesCount <= 0)
+                                            {
+                                                <div class="row mt-5">
+                                                    <h5 class="ml--10">Pending actions</h5>
+
+                                                    @*@if (string.IsNullOrEmpty(providerDetails.Pricing))
+        {
+            <div class="col-lg-3">
+                <div class="dashboard">
+                    <h3 class="mb-2"><i class="fa fa-dollar-sign"></i></h3>
+                    <h6 class="mb-1">Set Pricing</h6>
+                    <p class="mb-2 font-12">Your pricing details not updated yet!</p>
+                    <a href="/TradespersonAccount/TradesPersonProfile" class="small-box-footer">
+                        Go to setting <i class="fa fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+        }*@
+                                                    @if (providerDetails.ServicesCount <= 0)
+                                                    {
+                                                        <div class="col-lg-3">
+                                                            <div class="dashboard">
+                                                                <h3 class="mb-2"><i class="fa fa-cogs"></i></h3>
+                                                                <h6 class="mb-1">Your Services</h6>
+                                                                <p class="mb-2 font-12">Your services not updated yet!</p>
+                                                                <a href="/TradespersonAccount/ManageServices" class="small-box-footer">
+                                                                    Go to setting <i class="fa fa-arrow-circle-right"></i>
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                    @if (string.IsNullOrEmpty(providerDetails.ShortBio))
+                                                    {
+                                                        <div class="col-lg-3">
+                                                            <div class="dashboard">
+                                                                <h3 class="mb-2"><i class="fa fa-user"></i></h3>
+                                                                <h6 class="mb-1">Your Short Bio</h6>
+                                                                <p class="mb-2 font-12">Your short bio in profile not updated yet!</p>
+                                                                <a href="/TradespersonAccount/TradesPersonProfile" class="small-box-footer">
+                                                                    Go to setting <i class="fa fa-arrow-circle-right"></i>
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                    @if (string.IsNullOrEmpty(providerDetails.TradeTestCerticate))
+                                                    {
+                                                        <div class="col-lg-3">
+                                                            <div class="dashboard">
+                                                                <h3 class="mb-2"><i class="fa fa-file"></i></h3>
+                                                                <h6 class="mb-1">Your Trade Certicate</h6>
+                                                                <p class="mb-2 font-12">Your Trade test certicate is not uploaded yet!</p>
+                                                                <a href="/TradespersonAccount/TradesPersonProfile" class="small-box-footer">
+                                                                    Go to setting <i class="fa fa-arrow-circle-right"></i>
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                    @if (string.IsNullOrEmpty(providerDetails.PoliceClearance))
+                                                    {
+                                                        <div class="col-lg-3">
+                                                            <div class="dashboard">
+                                                                <h3 class="mb-2"><i class="fa fa-file-invoice"></i></h3>
+                                                                <h6 class="mb-1">Your Police Clearance</h6>
+                                                                <p class="mb-2 font-12">Your police clearance certicate is not uploaded yet!</p>
+                                                                <a href="/TradespersonAccount/TradesPersonProfile" class="small-box-footer">
+                                                                    Go to setting <i class="fa fa-arrow-circle-right"></i>
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                    @if (string.IsNullOrEmpty(providerDetails.ReferenceDoc))
+                                                    {
+                                                        <div class="col-lg-3">
+                                                            <div class="dashboard">
+                                                                <h3 class="mb-2"><i class="fa fa-file-invoice"></i></h3>
+                                                                <h6 class="mb-1">Your Reference letter</h6>
+                                                                <p class="mb-2 font-12">Your Reference letter from a rated company is not uploaded yet!</p>
+                                                                <a href="/TradespersonAccount/TradesPersonProfile" class="small-box-footer">
+                                                                    Go to setting <i class="fa fa-arrow-circle-right"></i>
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                    @if (providerDetails.IsVerified == false)
+                                                    {
+                                                        <div class="col-lg-3">
+                                                            <div class="dashboard">
+                                                                <h3 class="mb-2"><i class="fa fa-exclamation"></i></h3>
+                                                                <h6 class="mb-1">Verified badge</h6>
+                                                                <p class="mb-2 font-12">Your account not have verified badge from bridging africa!</p>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                    @if (providerDetails.StatusID == 1)
+                                                    {
+                                                        <div class="col-lg-3">
+                                                            <div class="dashboard">
+                                                                <h3 class="mb-2"><i class="fa fa-exclamation"></i></h3>
+                                                                <h6 class="mb-1">Account verification</h6>
+                                                                <p class="mb-2 font-12">Your account not verified by bridging africa!</p>
+                                                            </div>
+                                                        </div>
+                                                    }
+
+                                                </div>
+                                            }
+                                            <div class="row mt-5">
+                                                <div class="col-lg-12">
+                                                    <div class="card card-style mb-5">
+                                                        <div class="content mt-0 mb-2">
+                                                            <div>
+                                                                <input type="checkbox" id="switch-b" data-pro-id="@providerDetails.Id" value="@providerDetails.IsAvailable" onchange="AvailabilityToggle()" @(providerDetails.IsAvailable ? "checked" : "") />
+                                                                <label for="switch-b">
+                                                                    Are you available?
+                                                                </label>
+                                                                <p>Are you available to receive leads?</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="axil-dashboard-order">
+                                                        <div class="card card-style mt-4">
+                                                            <div class="content">
+                                                                @if (pendingQuotations.Count > 0)
+                                                                {
+                                                                    <h5 style="display: inline;">Pending Requests</h5>
+                                                                    <a class="float-right" href="/TradespersonAccount/MyQuotations">View All</a>
+                                                                    <div class="clearfix"></div>
+                                                                    <p>
+                                                                        Service requested from customer, yet not completed.
+                                                                    </p>
+                                                                    <div class="divider mt-3 mb-3"></div>
+                                                                    <div class="table-responsive" style="height: 285px;">
+                                                                        <table class="table">
+                                                                            <thead>
+                                                                                <tr>
+                                                                                    <th scope="col">Job</th>
+                                                                                    <th>Customer</th>
+                                                                                    <th>View</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                @foreach (var item in pendingQuotations)
+                                                                                {
+                                                                                    <tr>
+                                                                                        <td>@item.SubCategoryName > @item.ServiceName</td>
+                                                                                        <td>@item.FirstName</td>
+                                                                                        <td>
+                                                                                            @if (item.IsPaid == true)
+                                                                                            {
+                                                                                                <a href="/TradespersonAccount/QuotationDetails?qid=@item.Id" class='axil-btn view-btn'>View Details</a>
+                                                                                            }
+                                                                                            else
+                                                                                            {
+                                                                                                <a href="/TradespersonAccount/PaymentDetails?qid=@item.Id" class='axil-btn view-btn'>View Details</a>
+                                                                                            }
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                }
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                }
+                                                                else
+                                                                {
+                                                            <h6>No Pending Requests</h6>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                        @*<div class="card card-style mt-4">
+                                                            <div class="content">
+                                                                @if (pendingJobs.Count > 0)
+                                                                {
+                                                                    <h5 style="display: inline;">Pending Jobs</h5>
+                                                                    <a class="float-right" href="/TradespersonAccount/MyJobs">View All</a>
+                                                                    <div class="clearfix"></div>
+                                                                    <p>
+                                                                        Jobs you converted from quotations from customer, yet not completed.
+                                                                    </p>
+                                                                    <div class="divider mt-3 mb-3"></div>
+                                                                    <div class="table-responsive" style="height: 285px;">
+                                                                        <table class="table">
+                                                                            <thead>
+                                                                                <tr>
+                                                                                    <th scope="col">Job</th>
+                                                                                    <th>Customer</th>
+                                                                                    <th>View</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                @foreach (var item in pendingJobs)
+                                                                                {
+                                                                                    <tr>
+                                                                                        <td>@item.SubCategoryName > @item.ServiceName</td>
+                                                                                        <td>@item.FirstName</td>
+                                                                                        <td><a class="axil-btn view-btn" href="/TradespersonAccount/MyJobDetails?jobID=@item.Id">View Detail</a></td>
+                                                                                    </tr>
+                                                                                }
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <h6>No Pending Jobs</h6>
+                                                                }
+                                                            </div>
+                                                        </div>*@
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </section>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+

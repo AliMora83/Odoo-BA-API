@@ -1,0 +1,127 @@
+﻿@model BridgingAfrica.ProviderEnquiryTbl
+@{
+    ViewBag.Title = "Request Confirmation";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script>
+    function sendMessage(pid, qid, yesNo) {
+        $.ajax({
+            url: '/api/ProviderApi/ConfirmQuotation?pid=' + pid + '&qid=' + qid + '&yesNo=' + yesNo,
+            type: 'POST',
+            beforeSend: function () {
+                $("body").mLoading();
+            },
+            success: function (response) {
+                $("body").mLoading('hide');
+                if (response.Status == "Success") {
+                    alert(response.Message);
+                    window.location = "/CustomerAccount/Messages"
+                }
+                else {
+                    alert(response.Message);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Error:", error);
+                alert("An error occurred while sending the message.");
+            }
+        });
+    }
+</script>
+<main class="main-wrapper">
+    <!-- Start Breadcrumb Area  -->
+    <div class="axil-breadcrumb-area">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 col-md-8">
+                    <div class="inner">
+                        <ul class="axil-breadcrumb">
+                            <li class="axil-breadcrumb-item"><a href="/">Home</a></li>
+                            <li class="separator"></li>
+                            <li class="axil-breadcrumb-item active" aria-current="page">Request Details</li>
+                        </ul>
+                        <h1 class="title">Request Details</h1>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-4">
+                    <div class="inner">
+                        <div class="bradcrumb-thumb">
+                            <img src="/assets/images/logo/logoheader.png" alt="Image" style="height:140px;" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="axil-dashboard-area mb--80">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="axil-dashboard-area mt--30">
+                    <div class="container">
+                        <div class="axil-dashboard-warp">
+                            <div class="axil-dashboard-author">
+                                <div class="media">
+                                    <div class="media-body">
+                                        <h5 class="title mb-0">Hello @Session["CustomerName"]</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                @Html.Action("_AccountDetail", "CustomerAccount")
+                                <div class="col-xl-9 col-md-8">
+                                    <div class="card card-style mt-2 mb-2">
+                                        <div class="page-title page-title-small mb-2">
+                                            <h4 class="text-center mb-2 mt-2">Request Details</h4>
+                                        </div>
+                                    </div>
+                                    <div class="card card-style">
+                                        <div class="page-title page-title-small mb-2">
+                                            <h6 class="text-center mb-2 mt-2">Tradesperson: @Model.ProviderTbl.ProviderName</h6>
+                                            <p class="text-center mb-2">@Model.CategoryTbl.CategoryName <i class="fa fa-chevron-circle-right"></i> @Model.SubCategoryTbl.SubCategoryName</p>
+                                            <h4 class="text-center mb-2">@Model.ServiceTbl.ServiceName</h4>
+                                        </div>
+                                        <div class="content mt-1 mb-2">
+                                            <h6 class="text-center mb-3">Work Urgency: @Model.WorkerUrgency</h6>
+                                            <h6 class="text-center mb-2">Job Details: @Model.JobDetail</h6>
+                                        </div>
+                                    </div>
+                                    @if (Model.StatusID == 6)
+                                    {
+                                        <div class="card card-style">
+                                            <div class="content mb-0 mt-1 pt-2 mb-2 text-center">
+                                                <h4>Request is cancelled</h4>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        if (Model.IsConfirmed == true)
+                                        {
+                                            <div class="card card-style">
+                                                <div class="content mb-0 mt-1 pt-2 mb-2 text-center">
+                                                    <h4>Request is already confirmed</h4>
+                                                </div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="card card-style">
+                                                <div class="content mb-0 mt-1 pt-2 mb-2 text-center">
+                                                    <p>Could you please confirm whether you still require a service request from a tradesperson?</p>
+                                                    <button onclick="sendMessage(@Model.ProviderID,@Model.Id,'Yes')" style="width:300px" class="axil-btn mt-4 p-2 btn-bg-primary">Yes, Required</button>
+                                                    <button onclick="sendMessage(@Model.ProviderID,@Model.Id,'No')" style="width:300px" class="axil-btn mt-4 p-2 btn-bg-primary">Not Required</button>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+

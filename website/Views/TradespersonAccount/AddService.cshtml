@@ -1,0 +1,149 @@
+﻿
+@{
+    ViewBag.Title = "AddService";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    int providerID = int.Parse(Session["P_UserID"].ToString());
+}
+<script>   
+    function getSubcategories(cateId) {
+        $('#SubCategoryID').empty().append('<option value="">---Select Subcategory---</option>');
+        if (cateId) {
+            $.ajax({
+                url: '/api/HomeApi/GetSubCategories',
+                type: 'GET',
+                data: { cid: cateId },
+                success: function (data) {
+                    if (data.length > 0) {
+                        $.each(data, function (i, item) {
+                            $('#SubCategoryID').append($('<option>', {
+                                value: item.Id,
+                                text: item.SubCategoryName
+                            }));
+                        });
+                    }
+                    else {
+                        $('#SubCategoryID').empty().append('<option value="">---No Subcategory found---</option>');
+                    }
+                }
+            });
+        }
+    }
+    function getServices() {
+        $('#ServiceID').empty().append('<option value="">---Select Service---</option>');
+        var CategoryID = $('#CategoryID').val();
+        var SubCategoryID = $('#SubCategoryID').val();
+        $.ajax({
+            url: '/api/HomeApi/GetServices?cid=' + CategoryID + '&scid=' + SubCategoryID,
+            type: 'GET',
+            success: function (data) {
+                if (data.length > 0) {
+                    $.each(data, function (i, item) {
+                        $('#ServiceID').append($('<option>', {
+                            value: item.Id,
+                            text: item.ServiceName
+                        }));
+                    });
+                }
+                else {
+                    $('#ServiceID').empty().append('<option value="">---No Services found---</option>');
+                }
+            }
+        });
+    }
+    function AddService() {
+        var providerID = $('#providerID').val();
+        var serviceid = $('#ServiceID').val();
+        if (serviceid != null && serviceid != "") {
+            $.ajax({
+                url: "/api/ProviderApi/AddProviderService?sid=" + serviceid + "&pid=" + providerID,
+                type: 'GET',
+                contentType: 'application/json',
+                beforeSend: function () {
+                    $("body").mLoading();
+                },
+                success: function (data) {
+                    $("body").mLoading('hide');
+                    if (data.Status == "Success") {
+                        alert(data.Message);
+                    }
+                    else {
+                        alert(data.Message);
+                    }
+                },
+                error: function (data) {
+                    alert(data.Message);
+                    $("body").mLoading('hide');
+                }
+            });
+        }
+        else {
+            alert('Selected service not available.');
+        }
+    }
+</script>
+<main class="main-wrapper">
+    <!-- Start Breadcrumb Area  -->
+    <div class="axil-breadcrumb-area">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 col-md-8">
+                    <div class="inner">
+                        <ul class="axil-breadcrumb">
+                            <li class="axil-breadcrumb-item"><a href="/">Home</a></li>
+                            <li class="separator"></li>
+                            <li class="axil-breadcrumb-item active" aria-current="page">Add Services</li>
+                        </ul>
+                        <h1 class="title">Add Services</h1>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-4">
+                    <div class="inner">
+                        <div class="bradcrumb-thumb">
+                            <img src="/assets/images/logo/logoheader.png" alt="Image" style="height:140px;" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="axil-dashboard-area mb--80">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="axil-dashboard-area mt--30">
+                    <div class="container">
+                        <div class="axil-dashboard-warp">
+                            <div class="axil-dashboard-author">
+                                <div class="media">
+                                    <div class="media-body">
+                                        <h5 class="title mb-0">Hello @Session["ProviderName"]</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                @Html.Action("_AccountDetail", "TradespersonAccount")
+                                <div class="col-xl-9 col-md-8">
+                                    <div class="form-group mb-20 mt-5">
+                                        <label>Category</label>
+                                        @Html.DropDownList("CategoryID", null, "---Select Category---", htmlAttributes: new { required = "required", onchange = "getSubcategories(this.value)" })
+                                    </div>
+                                    <div class="form-group mb-20 mt-5">
+                                        <label>Subcategory</label>
+                                        @Html.DropDownList("SubCategoryID", new SelectList(Enumerable.Empty<SelectListItem>()), htmlAttributes: new { required = "required", onchange = "getServices()" })
+                                    </div>
+                                    <div class="form-group mb-20 mt-5">
+                                        <label>Select Service</label>
+                                        @Html.DropDownList("ServiceID", new SelectList(Enumerable.Empty<SelectListItem>()), htmlAttributes: new { required = "required" })
+                                    </div>
+                                    <input type="hidden" id="providerID" value="@providerID" />
+                                    <button onclick="AddService()" class="axil-btn p-2 btn-bg-primary" style="width:150px">Add</button>
+                                    <a href="/TradespersonAccount/ManageServices" class="axil-btn" style="float:right;border: 1px solid #C0C0C0;padding: 5px 15px;font-size: 14px;">Back to list</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>

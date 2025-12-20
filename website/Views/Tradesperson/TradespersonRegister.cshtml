@@ -1,0 +1,79 @@
+﻿@model BridgingAfrica.ProviderTbl
+@{
+    ViewBag.Title = "TradespersonRegister";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Start Contact Area  -->
+<div class="axil-contact-page-area axil-section-gap">
+    <div class="container">
+        <div class="axil-contact-page">
+            <div class="row row--30">
+                <div class="col-xl-10 col-lg-12 col-sm-12 offset-lg-1 offset-xl-1">
+                    @if (TempData["FailMessage"] != null)
+                    {
+                        <div id="fail-alert" class="alert alert-danger text-center">@TempData["FailMessage"]</div>
+                    }
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div id="success-alert" class="alert alert-success text-center">@TempData["SuccessMessage"]</div>
+                    }
+                    <div class="contact-form">
+                        <h3 class="title mb--10">Tradesperson Registration</h3>
+                        <p>Register your account.</p>
+                        <form method="post" action="/Tradesperson/TradespersonRegister">
+                            @Html.AntiForgeryToken()
+                            <input id="ContactNo" name="ContactNo" type="hidden" value="@Session["ContactNo"]" />
+                            <input id="PostalCodeID" name="PostalCodeID" type="hidden" value="@Session["AreaID"]" />
+                            <input id="AddressLine1" name="AddressLine1" type="hidden" value="@Session["Address1"]" />
+                            <input id="AddressLine2" name="AddressLine2" type="hidden" value="@Session["Address2"]" />
+                            <div class="row row--10">
+                                <div class="col-lg-6">
+                                    <div class="form-group">
+                                        <label>Select Trade Type</label>
+                                        <select id="ProviderType" name="ProviderType" required>
+                                            <option value="">Select Type</option>
+                                            <option value="Self Employed">Self Employed</option>
+                                            <option value="Ltd. Company">Ltd. Company</option>
+                                            <option value="Looking to start a business">Looking to start a business</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Trade Name</label>
+                                        @Html.EditorFor(model => model.ProviderName, new { htmlAttributes = new { required = "required" } })
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Owner Name</label>
+                                        @Html.EditorFor(model => model.OwnerName, new { htmlAttributes = new { required = "required" } }) 
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Email Id</label>
+                                        @Html.EditorFor(model => model.EmailID, new { htmlAttributes = new { required = "required", autocomplete = "off" } })
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="form-group">
+                                        <label>Experience (eg: 10 Year, 6 Month etc.)</label>
+                                        @Html.EditorFor(model => model.Experience, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Total Team Members</label>
+                                        @Html.TextBoxFor(model => model.TeamCount, new { @type = "number", @min = "0", Value = "0", required = "required" })
+                                    </div>
+                                </div>
+                                <div class="col-12 mt--20">
+                                    <div class="form-group mb--0">
+                                        <button type="submit" class="axil-btn btn-bg-primary">Register Now</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Contact Area  -->

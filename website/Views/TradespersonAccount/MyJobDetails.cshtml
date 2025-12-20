@@ -1,0 +1,139 @@
+﻿@model BridgingAfrica.ProviderJobsTbl
+@{
+    ViewBag.Title = "MyJobDetails";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+<script>
+    function CreateInvoice() {
+        var jobID = $('#jobId').val();
+        var amount = $('#Amount').val();
+        var custID = $('#custID').val();
+        var JobDetail = $('#JobDetail').val();
+        if (!amount) {
+            alert('Please Enter Finalized Amount');
+        }
+        else {
+            $.ajax({
+                url: '/api/ProviderApi/CreateJobInvoice',
+                type: "Post",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify({ jobID: jobID, amount: amount, JobDetail: JobDetail, CustomerID:  custID }),
+                beforeSend: function () {
+                    $("body").mLoading();
+                },
+                success: function (json) {
+                    $("body").mLoading('hide');
+                    if (json.Status == "Success") {
+                        alert(json.Message);
+                        window.location = "/TradespersonAccount/MyJobs";
+                    }
+                    else {
+                        alert(json.Message);
+                    }
+                },
+            });
+        }
+    }
+</script>
+
+<main class="main-wrapper">
+    <!-- Start Breadcrumb Area  -->
+    <div class="axil-breadcrumb-area">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 col-md-8">
+                    <div class="inner">
+                        <ul class="axil-breadcrumb">
+                            <li class="axil-breadcrumb-item"><a href="/">Home</a></li>
+                            <li class="separator"></li>
+                            <li class="axil-breadcrumb-item active" aria-current="page">Job Details</li>
+                        </ul>
+                        <h1 class="title">Job Details</h1>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-4">
+                    <div class="inner">
+                        <div class="bradcrumb-thumb">
+                            <img src="/assets/images/logo/logoheader.png" alt="Image" style="height:140px;" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="axil-dashboard-area mb--80">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="axil-dashboard-area mt--30">
+                    <div class="container">
+                        <div class="axil-dashboard-warp">
+                            <div class="axil-dashboard-author">
+                                <div class="media">
+                                    <div class="media-body">
+                                        <h5 class="title mb-0">Hello @Session["ProviderName"]</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                @Html.Action("_AccountDetail", "TradespersonAccount")
+                                <div class="col-xl-9 col-md-8">
+                                    <div class="card card-style mt-2 mb-2">
+                                        <div class="page-title page-title-small mb-2">
+                                            <h4 class="text-center mt-2 mb-2">Customer Information</h4>
+                                        </div>
+                                    </div>
+                                    <div class="card card-style">
+                                        <div class="content mb-0 mt-1 pt-2 mb-2 text-center">
+                                            <h6 class="mb-2">Name: @Model.ProviderEnquiryTbl.CustomerTbl.FirstName @Model.ProviderEnquiryTbl.CustomerTbl.LastName </h6>
+                                            <h6 class="mb-2">Contact No: @Model.ProviderEnquiryTbl.CustomerTbl.MobileNo </h6>
+                                            <h6 class="mb-2">
+                                                Address: @Model.ProviderEnquiryTbl.CustomerTbl.PostalCodesTbl.AreaName, @Model.ProviderEnquiryTbl.CustomerTbl.AddressLine1
+                                                <br />@Model.ProviderEnquiryTbl.CustomerTbl.AddressLine2
+                                            </h6>
+                                        </div>
+                                    </div>
+                                    <div class="card card-style mt-2 mb-2">
+                                        <div class="page-title page-title-small mb-2">
+                                            <h4 class="text-center mb-2 mt-2">Work Details</h4>
+                                        </div>
+                                    </div>
+                                    <div class="card card-style">
+                                        <div class="page-title page-title-small mb-2">
+                                            <p class="text-center mb-2">@Model.ProviderEnquiryTbl.CategoryTbl.CategoryName <i class="fa fa-chevron-circle-right"></i> @Model.ProviderEnquiryTbl.SubCategoryTbl.SubCategoryName</p>
+                                            <h4 class="text-center">@Model.ProviderEnquiryTbl.ServiceTbl.ServiceName</h4>
+                                        </div>
+                                        <div class="content mb-0 mt-1 pt-2 mb-2 text-center">
+                                            <input type="hidden" id="jobId" value="@Request.QueryString["jobID"]" />
+                                            <input type="hidden" id="custID" value="@Model.ProviderEnquiryTbl.CustomerID" />
+                                            <div class="form-group" style="width:70%;margin:auto;display:none">
+                                                <label>Finalized amount</label>
+                                                <input type="number" id="Amount" name="Amount" value="@Model.Amount" step="0.1" placeholder="Enter Finalized amount" required @(Model.StatusID == 4 ? "disabled" : "") />
+                                            </div>
+                                            <div class="form-group mt-5" style="width:70%;margin:auto">
+                                                <label>Job Detail</label>
+                                                <textarea id="JobDetail" @(Model.StatusID == 4 ? "disabled=\"disabled\"" : "") name="JobDetail" style="height:100px;" placeholder="Modify Job Detail" required>@Model.JobDetail</textarea>
+                                            </div>
+                                            @if (Model.StatusID == 4)
+                                            {
+                                                @*<a href="/TradespersonAccount/JobInvoicePreview?jobid=@Model.Id" class="axil-btn mt-4 p-2 btn-bg-primary">View Invoice</a>*@
+
+                                                <h4 class="text-center">This job is completed</h4>
+                                            }
+                                            else
+                                            {
+                                                <button onclick="CreateInvoice()" style="width:300px" class="axil-btn mt-4 p-2 btn-bg-primary">Complete Job?</button>
+                                            }
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>

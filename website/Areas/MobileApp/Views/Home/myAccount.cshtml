@@ -1,0 +1,97 @@
+﻿
+@{
+    ViewBag.Title = "myAccount";
+    Layout = "~/Areas/MobileApp/Views/Shared/_LayoutMain.cshtml";
+
+    BridgingAfricaDBEntities db = new BridgingAfricaDBEntities();
+    int custID = 0;
+    if (Request.Cookies["UserID"] != null)
+    {
+        HttpCookie reqCookies = Request.Cookies["UserID"];
+        custID = int.Parse(reqCookies.Value);
+    }
+    var unread = db.CustomerNotificationTbls.Count(p => p.CustID == custID && p.Status == false && p.Isactive == true);
+}
+<script>
+    function Logout() {
+        localStorage.clear();
+        sessionStorage.clear();
+        const expiryDate = new Date();
+        expiryDate.setMinutes(expiryDate.getMinutes() - 2000); // Set expiry time to 5 Year from now
+        setCookie("UserID", "", expiryDate);
+        window.location = "/MobileApp/Home/MainHome?IsLogout=1"
+    }
+</script>
+<div class="page-content">
+    <div class="page-title page-title-small">
+        <h2><a href="/MobileApp/Home/MainHome"><i class="fa fa-arrow-left"></i></a>My Account</h2>
+    </div>
+    <div class="card header-card shape-rounded" data-card-height="210">
+        <div class="card-overlay bg-ba-theme opacity-95"></div>
+        <div class="card-overlay dark-mode-tint"></div>
+        <div class="card-bg"></div>
+    </div>
+    <div class="card card-style">
+        <div class="content mt-0 mb-2">
+            <div class="list-group list-custom-large">
+                <a href="/MobileApp/Home/MyProfile">
+                    <i class="fa font-14 fa-user bg-ba-theme color-white rounded-sm"></i>
+                    <span>Profile</span>
+                    <i class="fa fa-angle-right mr-2"></i>
+                </a>
+                <a href="/MobileApp/Home/MyServices">
+                    <i class="fa font-14 fa-list bg-ba-theme rounded-sm"></i>
+                    <span>Requests</span>
+                    <i class="fa fa-angle-right mr-2"></i>
+                </a>
+                <a href="/MobileApp/Home/Messages">
+                    <i class="fa font-14 fa-envelope bg-ba-theme rounded-sm"></i>
+                    <span>Messages</span>
+                    @if (unread > 0)
+                    {<em class="badge bg-ba-theme" style="margin-right: 40px;margin-top: 23px;font-size:12px">@unread</em>}
+                    <i class="fa fa-angle-right mr-2"></i>
+                </a>
+                <a href="/MobileApp/Home/CancelledQuotations">
+                    <i class="fa font-14 fa-file bg-ba-theme rounded-sm"></i>
+                    <span>Cancelled Requests</span>
+                    <i class="fa fa-angle-right mr-2"></i>
+                </a>
+                <a href="/MobileApp/Home/TradespersonReviews">
+                    <i class="fa font-14 fa-star bg-ba-theme color-white rounded-sm"></i>
+                    <span>Tradesperson Reviews</span>
+                    <i class="fa fa-angle-right mr-2"></i>
+                </a>
+                @*<a href="/MobileApp/Home/MyJobs">
+            <i class="fa font-14 fa-list bg-ba-theme rounded-sm"></i>
+            <span>Jobs</span>
+            <i class="fa fa-angle-right mr-2"></i>
+        </a>*@
+                @*<a href="/MobileApp/Home/MyJobsInvoices">
+            <i class="fa font-14 fa-file-invoice bg-ba-theme rounded-sm"></i>
+            <span>Job Invoices</span>
+            <i class="fa fa-angle-right mr-2"></i>
+        </a>*@
+                <a href="/MobileApp/Home/ContactUs">
+                    <i class="fa font-14 fa-question bg-ba-theme color-white rounded-sm"></i>
+                    <span>Help</span>
+                    <i class="fa fa-angle-right mr-2"></i>
+                </a>
+                <a href="#" data-toggle-theme class="show-on-theme-light">
+                    <i class="fa font-14 fa-moon bg-ba-theme rounded-sm"></i>
+                    <span>Dark Mode</span>
+                    <i class="fa fa-angle-right mr-2"></i>
+                </a>
+                <a href="#" data-toggle-theme class="show-on-theme-dark">
+                    <i class="fa font-14 fa-lightbulb bg-ba-theme rounded-sm"></i>
+                    <span>Light Mode</span>
+                    <i class="fa fa-angle-right mr-2"></i>
+                </a>
+                <a href="#" onclick="Logout()">
+                    <i class="fa font-14 fa-sign-out-alt bg-ba-theme rounded-sm"></i>
+                    <span>Sign out</span>
+                    <i class="fa fa-angle-right mr-2"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,51 @@
+﻿@model BridgingAfrica.ProviderJobsTbl
+@{
+    ViewBag.Title = "MyJobDetails";
+    Layout = "~/Areas/MobileApp/Views/Shared/_LayoutMain.cshtml";
+}
+
+<div class="page-content">
+    <div class="page-title page-title-small">
+        <h2><a href="/MobileApp/Home/MyJobs"><i class="fa fa-arrow-left"></i></a>Job Details</h2>
+    </div>
+    <div class="card header-card shape-rounded" data-card-height="150">
+        <div class="card-overlay bg-ba-theme opacity-95"></div>
+        <div class="card-overlay dark-mode-tint"></div>
+        <div class="card-bg"></div>
+    </div>
+    <div class="card card-style mt-2 mb-2">
+        <div class="page-title page-title-small mb-2">
+            <h4 class="text-center font-600">Work Details</h4>
+        </div>
+    </div>
+    <div class="card card-style">
+        <div class="page-title page-title-small mb-2">
+            <p class="text-center">@Model.ProviderEnquiryTbl.CategoryTbl.CategoryName <i class="fa fa-chevron-circle-right"></i> @Model.ProviderEnquiryTbl.SubCategoryTbl.SubCategoryName</p>
+            <h4 class="text-center font-500">@Model.ProviderEnquiryTbl.ServiceTbl.ServiceName</h4>
+            <h6 class="text-center font-600 mt-2">
+                Work: <span class="font-400">@Model.JobDetail</span>
+            </h6>
+            @if (Model.StatusID == 4)
+            {
+                <h6 class="text-center font-500 mt-2">This job is completed</h6>
+                @*<a href="/MobileApp/Home/JobInvoicePreview?jobid=@Model.Id" class="btn btn-full btn-m shadow-l rounded-s bg-ba-theme text-uppercase font-900 mt-4 m-2">View Invoice</a>*@
+            }
+        </div>       
+    </div>
+    <div class="card card-style mt-2 mb-2">
+        <div class="page-title page-title-small mb-2">
+            <h4 class="text-center font-600">Tradesperson Information</h4>
+        </div>
+    </div>
+    <div class="card card-style">
+        <div class="content mb-0 mt-1 pt-2 mb-2 text-center">
+            <h6 class="font-500">@Model.ProviderEnquiryTbl.ProviderTbl.ProviderName</h6>
+            <h6 class="font-500">Contact No: @Model.ProviderEnquiryTbl.ProviderTbl.ContactNo </h6>
+            <h6 class="font-500">
+                Address: @Model.ProviderEnquiryTbl.ProviderTbl.PostalCodesTbl.AreaName, @Model.ProviderEnquiryTbl.ProviderTbl.AddressLine1
+                <br />@Model.ProviderEnquiryTbl.ProviderTbl.AddressLine2
+            </h6>
+        </div>
+    </div>
+</div>
+

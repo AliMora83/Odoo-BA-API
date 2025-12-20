@@ -1,0 +1,123 @@
+﻿
+@{
+    ViewBag.Title = "RegisterCustomer";
+    Layout = "~/Areas/MobileApp/Views/Shared/_LayoutMain.cshtml";
+}
+
+<script>
+
+    $(document).ready(function () {
+        var mobile = sessionStorage.getItem("MobileNumber");
+        if (mobile != null && mobile != "") {
+            var PostalCodeID = localStorage.getItem("PostalCodeID");
+            var AddressLine1 = localStorage.getItem("AddressLine1");
+            var AddressLine2 = localStorage.getItem("AddressLine2");
+            $('#MobileNumber').val(mobile);
+            $('#PostalCodeID').val(PostalCodeID);
+            $('#AddressLine1').val(AddressLine1);
+            $('#AddressLine2').val(AddressLine2);          
+
+            $("#btnsave").click(function (e) {
+                var IsValid = checkvalues();
+                if (IsValid != "1") {
+                    IsValid.focus();
+                    $('#ErrorToast').html(IsValid[0].title);
+                    $('#ErrorToast').toast('show');
+                }
+                else {
+                    var areaId = $('#PostalCodeID').val();
+                    if (areaId != null && areaId != "") {
+                        e.preventDefault();
+                        var valdata = $("#myForm").serialize();
+                        $.ajax({
+                            url: '/api/HomeApi/CustomerRegister', 
+                            type: 'POST',
+                            dataType: 'json',
+                            data: valdata,
+                            beforeSend: function () {
+                                $("body").mLoading();
+                            },
+                            success: function (data) {
+                                $("body").mLoading('hide');
+                                if (data.Status == "Success") {
+                                    localStorage.removeItem("PostalCodeID");
+                                    localStorage.removeItem("AddressLine1");
+                                    localStorage.removeItem("AddressLine2");
+                                    sessionStorage.clear();
+                                    localStorage.setItem("UserID", data.UserID);
+                                    document.cookie = "UserID=" + data.UserID + "; max-age=31536000; path=/";
+                                    if (data.UserID && window.Android) {
+                                        Android.sendUserIdToApp(data.UserID, "customer");
+                                    }
+                                    document.getElementById("SuccessHeader").innerHTML = "Success";
+                                    document.getElementById("SuccessDetail").innerHTML = data.Message;
+                                    $('#SuccessMessage').showMenu();
+                                    $('#BtnSuccess').click(function () {
+                                        var pid = localStorage.getItem("pid");
+                                        var serviceid = localStorage.getItem("serviceid");
+                                        var scid = localStorage.getItem("scid");
+                                        var cid = localStorage.getItem("cid");
+                                        var postalcode = localStorage.getItem("postalcode");
+                                        if (pid != null) {
+                                            window.location = "/MobileApp/Home/GetQuote?scid=" + scid + "&cid=" + cid + "&PostalCodeID=" + postalcode + "&serviceid=" + postalcode + "&pid=" + pid;
+                                        }
+                                        else {
+                                            window.location = "/MobileApp/Home/MainHome"
+                                        }
+                                    });
+                                }
+                                else {
+                                    document.getElementById("ErrorHeader").innerHTML = "Alert";
+                                    document.getElementById("ErrorDetails").innerHTML = data.Message;
+                                    $('#ErrorMessage').showMenu();
+                                }
+                            },
+                            error: function (data) {
+                                $("body").mLoading('hide');
+                                alert(data.Message);
+                            }
+                        });
+                    }
+                    else {
+                        $('#ErrorToast').html("Please select you area/Suburb from list");
+                        $('#ErrorToast').toast('show');
+                    }
+                }
+            });
+        }
+    });
+</script>
+
+<div class="page-content pb-5">
+    <div class="card card-style mt-2 mb-5">
+        <div class="content mb-0">
+            <h3 class="mb-5 text-center">Complete you profile</h3>
+            <form id="myForm" method="post">
+                <input id="MobileNumber" name="MobileNo" type="hidden" />
+                <input id="PostalCodeID" name="PostalCodeID" type="hidden" />
+                <input id="AddressLine1" name="AddressLine1" type="hidden" />
+                <input id="AddressLine2" name="AddressLine2" type="hidden" />
+                <div class="input-style input-style-2 has-icon">
+                    <i class="input-icon fa fa-user color-theme"></i>
+                    <span class="color-highlight input-style-1-active">First Name</span>
+                    <em>(required)</em>
+                    <input name="FirstName" class="form-control" type="text" title="Enter First Name" required>
+                </div>
+                <div class="input-style input-style-2 has-icon">
+                    <i class="input-icon fa fa-user color-theme"></i>
+                    <span class="color-highlight input-style-1-active">Last Name</span>
+                    <em>(required)</em>
+                    <input name="LastName" class="form-control" type="text" title="Enter Last Name" required>
+                </div>
+                <div class="input-style input-style-2 has-icon">
+                    <i class="input-icon fa fa-envelope color-theme"></i>
+                    <span class="color-highlight input-style-1-active">Email</span>
+                    <em>(required)</em>
+                    <input name="EmailID" class="form-control" type="email" title="Enter Email ID" required>
+                </div>
+                <a href="#" id="btnsave" class="btn btn-m btn-full mb-3 rounded-xl text-uppercase font-900 shadow-s bg-ba-theme">Submit</a>
+            </form>
+        </div>
+    </div>
+</div>
+

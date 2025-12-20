@@ -1,0 +1,93 @@
+﻿@model BridgingAfrica.ProviderEnquiryTbl
+@{
+    ViewBag.Title = "QuotationConfirmation";
+    Layout = "~/Areas/MobileApp/Views/Shared/_LayoutMain.cshtml";
+}
+<script>
+    function sendMessage(pid, qid, yesNo) {
+        $.ajax({
+            url: '/api/ProviderApi/ConfirmQuotation?pid=' + pid + '&qid=' + qid + '&yesNo=' + yesNo,
+            type: 'POST',
+            beforeSend: function () {
+                $("body").mLoading();
+            },
+            success: function (response) {
+                $("body").mLoading('hide');
+                if (response.Status == "Success") {
+                    document.getElementById("SuccessHeader").innerHTML = "Success";
+                    document.getElementById("SuccessDetail").innerHTML = response.Message;
+                    $('#SuccessMessage').showMenu();
+                    $('#BtnSuccess').click(function () {
+                        window.location = "/MobileApp/Home/Messages"
+                    });
+                }
+                else {
+                    document.getElementById("ErrorHeader").innerHTML = "Alert";
+                    document.getElementById("ErrorDetails").innerHTML = response.Message;
+                    $('#ErrorMessage').showMenu();
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Error:", error);
+                alert("An error occurred while sending the message.");
+            }
+        });
+    }
+</script>
+<div class="page-content">
+    <div class="page-title page-title-small">
+        <h2><a href="/MobileApp/Home/Messages"><i class="fa fa-arrow-left"></i></a>Messages</h2>
+    </div>
+    <div class="card header-card shape-rounded" data-card-height="150">
+        <div class="card-overlay bg-ba-theme opacity-95"></div>
+        <div class="card-overlay dark-mode-tint"></div>
+        <div class="card-bg"></div>
+    </div>
+    <div class="clearfix mb-3"></div>
+    <div class="card card-style mt-2 mb-2">
+        <div class="page-title page-title-small mb-2">
+            <h4 class="text-center mb-2 mt-2">Request Details</h4>
+        </div>
+    </div>
+    <div class="card card-style">
+        <div class="page-title page-title-small mb-2">
+            <h6 class="text-center mb-2 mt-2">Tradesperson: @Model.ProviderTbl.ProviderName</h6>
+            <p class="text-center mb-2">@Model.CategoryTbl.CategoryName <i class="fa fa-chevron-circle-right"></i> @Model.SubCategoryTbl.SubCategoryName</p>
+            <h4 class="text-center mb-2">@Model.ServiceTbl.ServiceName</h4>
+        </div>
+        <div class="content mt-1 mb-2">
+            <h6 class="text-center mb-3">Work Urgency: @Model.WorkerUrgency</h6>
+            <h6 class="text-center mb-2">Job Details: @Model.JobDetail</h6>
+        </div>
+    </div>
+    @if (Model.StatusID == 6)
+    {
+        <div class="card card-style">
+            <div class="content mb-0 mt-1 pt-2 mb-2 text-center">
+                <h4>Request is cancelled</h4>
+            </div>
+        </div>
+    }
+    else
+    {
+        if (Model.IsConfirmed == true)
+        {
+            <div class="card card-style">
+                <div class="content mb-0 mt-1 pt-2 mb-2 text-center">
+                    <h4>Request is already confirmed</h4>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card card-style">
+                <div class="content mb-0 mt-1 pt-2 mb-2 text-center">
+                    <p>Could you please confirm whether you still require a service request from tradesperson?</p>
+                    <a href="#" onclick="sendMessage(@Model.ProviderID,@Model.Id,'Yes')" class="btn btn-full btn-m shadow-l rounded-s bg-ba-theme text-uppercase font-900 top-20 m-2">Yes, Required</a>
+                    <a href="#" onclick="sendMessage(@Model.ProviderID,@Model.Id,'No')" class="btn btn-full btn-m shadow-l rounded-s bg-red2-dark text-uppercase font-900 top-20 m-2">Not Required</a>
+                </div>
+            </div>
+        }
+    }
+</div>
+
