@@ -1,0 +1,57 @@
+﻿@model BridgingAfrica.SubCategoryTbl
+
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<section class="content-header">
+    <h1>Edit Subcategory<small>(Edit Subcategory)</small></h1>
+</section>
+<section class="content">
+    @using (Html.BeginForm("Edit", "ManageSubCategory", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.Id)
+        @Html.HiddenFor(model => model.IsActive)
+        @Html.HiddenFor(model => model.CreateDate)
+        <div class="row">
+            <div class="col-md-12">
+                <div class="box box-warning">
+                    <div class="box-body">
+                        <div class="form-group">
+                            <label>Category Name</label>
+                            @Html.DropDownList("CategoryId", null, "---Select Category", htmlAttributes: new { @class = "form-control chosen-select" })
+                        </div>
+
+                        <div class="form-group">
+                            <label>Subcategory Name</label>
+                            @Html.EditorFor(model => model.SubCategoryName, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                        </div>
+
+                        <div class="form-group">
+                            <label>Sort Order</label>
+                            @Html.EditorFor(model => model.SortOrder, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                        </div>
+                        <div class="form-group">
+                            <label>Show On Front</label>
+                            @Html.DropDownList("ShowOnFront", new List<SelectListItem>
+                              {
+                                    new SelectListItem { Text = "No", Value = "false"},
+                                    new SelectListItem { Text = "Yes", Value = "true", },
+                              }, "----Select----", htmlAttributes: new { @class = "form-control", required = "required" })
+                        </div>
+                        <div class="form-group">
+                            <div class="box-footer">
+                                <input type="submit" value="Update" class="btn btn-primary" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    <div>
+        <a href="/Admin/ManageSubCategory/Index" class="btn btn-dropbox">Back to List</a>
+    </div>
+</section>

@@ -1,0 +1,60 @@
+﻿
+@{
+    ViewBag.Title = "MyJobsInvoices";
+    Layout = "~/Areas/TradespersonApp/Views/Shared/_ProviderLayout.cshtml";
+}
+
+<script>
+    $(document).ready(function () {
+        var UserID = localStorage.getItem("P_UserID");
+        $.ajax({
+            url: '/api/ProviderApi/GetProviderInvoices?providerID=' + UserID,
+            type: "get",
+            dataType: "JSON",
+            beforeSend: function () {
+                $("body").mLoading();
+            },
+            success: function (json) {
+                $("body").mLoading('hide');
+                if (json.length > 0) {
+                    json.forEach(function (item) {
+                        let createdate = new Date(item.CreatedDate).toDateString();
+                        $("#invoices").append(
+                            "<div class='card card-style bg-theme p-2'>" +
+                            "<div class='container'>" +
+                            "<h5 class='font-500 font-14'>Name: " + item.CustomerName + "</h5>" +
+                            "<h5 class='font-500 font-14'>Create Date: " + createdate + "</h5>" +
+                            "<h5 class='font-500 font-14'>Amount: $" + item.Amount + "</h5>" +
+                            "<p class='mb-1'><strong>Job detail: </strong>" + item.JobDetail + "</p>" +
+                            "<a href='/TradespersonApp/Home/JobInvoicePreview?page=1&jobid=" + item.JobID + "' " +
+                            "class='btn btn-m btn-full mb-1 rounded-xl text-uppercase font-900 shadow-s bg-ba-theme mt-2'>" +
+                            "View Invoice" +
+                            "</a>" +
+                            "</div>" +
+                            "</div>"
+                        );
+                    });
+
+                }
+                else {
+                    $("#invoices").append("<div class='card card-style bg-theme pb-3'><div class='container'><h5 class='font-500 mt-3'>No records found</h4></div></div>");
+                }
+            },
+        });
+    });
+</script>
+<div class="page-content">
+    <div class="page-title page-title-small">
+        <h2><a href="/TradespersonApp/Home/MyAccount"><i class="fa fa-arrow-left"></i></a>Job Invoices</h2>
+    </div>
+    <div class="card header-card shape-rounded" data-card-height="150">
+        <div class="card-overlay bg-ba-theme opacity-95"></div>
+        <div class="card-overlay dark-mode-tint"></div>
+        <div class="card-bg"></div>
+    </div>
+    <div class="clearfix mb-3"></div>
+    <div id="invoices">
+
+    </div>
+</div>
+

@@ -1,0 +1,90 @@
+﻿
+@{
+    ViewBag.Title = "MyJobs";
+    Layout = "~/Areas/TradespersonApp/Views/Shared/_ProviderLayout.cshtml";
+}
+
+<script>
+    $(document).ready(function () {
+        var UserID = localStorage.getItem("P_UserID");
+        $.ajax({
+            url: '/api/ProviderApi/GetProviderJobs?providerID=' + UserID,
+            type: "get",
+            dataType: "JSON",
+            beforeSend: function () {
+                $("body").mLoading();
+            },
+            success: function (json) {
+                $("body").mLoading('hide');
+                if (json.pending.length > 0) {
+                    json.pending.forEach(function (item) {
+                        let createdate = new Date(item.CreatedDate).toDateString();
+                        $("#tab-pending").append(
+                            "<div class='card card-style bg-theme p-2'>" +
+                            "<div class='container'>" +
+                            "<h5 class='font-500 mb-2'>Customer: <span class='font-400'>" + item.Name + "</span></h5>" +
+                            "<h5 class='font-500 font-14'>Create Date: <span class='font-400'>" + createdate + "</span></h5>" +                            
+                            "<h5 class='font-500 font-14'>Service: <span class='font-400'>" + item.ServiceName + "</span></h5>" +
+                            "<a href='/TradespersonApp/Home/MyJobDetails?jobID=" + item.Id + "' " +
+                            "class='btn btn-m btn-full mb-1 rounded-xl text-uppercase font-900 shadow-s bg-ba-theme mt-2'>" +
+                            "View Details" +
+                            "</a>" +
+                            "</div>" +
+                            "</div>"
+                        );
+                    });
+
+                }
+                else {
+                    $("#tab-pending").append("<div class='card card-style bg-theme pb-3'><div class='container'><h5 class='font-500 mt-3'>No records found</h4></div></div>");
+                }
+                if (json.completed.length > 0) {
+                    json.completed.forEach(function (item) {
+                        let createdate = new Date(item.CreatedDate).toDateString();
+                        $("#tab-completed").append(
+                            "<div class='card card-style bg-theme p-2'>" +
+                            "<div class='container'>" +
+                            "<h5 class='font-500 mb-2'>Customer: <span class='font-400'>" + item.Name + "</span></h5>" +
+                            "<h5 class='font-500 font-14'>Create Date: <span class='font-400'>" + createdate + "</span></h5>" +                           
+                            "<h5 class='font-500 font-14'>Service: <span class='font-400'>" + item.JobDetail + "</span></h5>" +
+                            "<a href='/TradespersonApp/Home/MyJobDetails?jobID=" + item.Id + "' " +
+                            "class='btn btn-m btn-full mb-1 rounded-xl text-uppercase font-900 shadow-s bg-ba-theme mt-2'>" +
+                            "View Details" +
+                            "</a>" +
+                            "</div>" +
+                            "</div>"
+                        );
+                    });
+                }
+                else {
+                    $("#tab-completed").append("<div class='card card-style bg-theme pb-3'><div class='container'><h5 class='font-500 mt-3'>No records found</h4></div></div>");
+                }
+            },
+        });
+    });
+</script>
+<div class="page-content">
+    <div class="page-title page-title-small">
+        <h2><a href="#" target="_self" data-back-button><i class="fa fa-arrow-left"></i></a>Jobs List</h2>
+    </div>
+    <div class="card header-card shape-rounded" data-card-height="150">
+        <div class="card-overlay bg-ba-theme opacity-95"></div>
+        <div class="card-overlay dark-mode-tint"></div>
+        <div class="card-bg"></div>
+    </div>
+
+    <div class="card card-style bg-theme pb-0">
+        <div class="tab-controls tabs-round tab-animated tabs-medium tabs-rounded shadow-xl" data-tab-items="2" data-tab-active="bg-green1-dark color-white">
+            <a href="#" data-tab-active data-tab="tab-pending">Pending Jobs</a>
+            <a href="#" data-tab="tab-completed">Completed Jobs</a>
+        </div>
+    </div>
+    <div class="clearfix mb-3"></div>
+    <div class="tab-content" id="tab-pending">
+
+    </div>
+
+    <div class="tab-content" id="tab-completed">
+
+    </div>
+</div>

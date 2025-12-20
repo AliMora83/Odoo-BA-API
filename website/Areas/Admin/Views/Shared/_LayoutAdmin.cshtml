@@ -1,0 +1,223 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no' name='viewport' />
+    <meta charset="UTF-8" />
+    <title>Bridging Africa Admin | @ViewBag.Title</title>
+    <!-- bootstrap 3.0.2 -->
+    <link href="~/AdminAssets/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <!-- font Awesome -->
+    <link href="~/AdminAssets/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+    <!-- Theme style -->
+    <link rel="stylesheet" href="~/AdminAssets/chosen_v1.8.7/chosen.css" />
+    <link href="~/AdminAssets/css/AdminLTE.css" rel="stylesheet" type="text/css" /> 
+
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script>
+        window.onload = function () {
+            $("#success-alert").fadeTo(3000, 700).slideUp(700, function () {
+                $("#success-alert").slideUp(700);
+            });
+
+            $("#fail-alert").fadeTo(3000, 700).slideUp(700, function () {
+                $("#fail-alert").slideUp(700);
+            });
+        };
+    </script>
+    <script>
+        function readURL(input, img) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $(img).attr('src', e.target.result);
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+
+</head>
+<body class="skin-blue">
+    <!-- header logo: style can be found in header.less -->
+    <header class="header">
+        <a href="/Admin/Dashboard" class="logo">
+            <h3 style="margin-top:10px">Bridging Africa</h3>
+        </a>
+        <!-- Header Navbar: style can be found in header.less -->
+        <nav class="navbar navbar-static-top" role="navigation">
+            <!-- Sidebar toggle button-->
+            <a href="#" class="navbar-btn sidebar-toggle" data-toggle="offcanvas" role="button">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </a>
+            <div class="navbar-right">
+                <ul class="nav navbar-nav">
+                    <li style="margin:10px;">
+                        <a class="btn btn-success pull-right" style="padding:5px" href="/" target="_blank">Go to Website <i class="fa fa-sign-out"></i> </a>
+                    </li>
+                    <li style="margin:10px">
+                        <a class="btn btn-danger pull-right" style="padding:5px" href="@Url.Action("Logout", "Dashboard", null)">Logout <i class="fa fa-sign-out"></i> </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+    <div class="wrapper row-offcanvas row-offcanvas-left">
+        <!-- Left side column. contains the logo and sidebar -->
+        <aside class="left-side sidebar-offcanvas">
+            <!-- sidebar: style can be found in sidebar.less -->
+            <section class="sidebar">
+                <!-- Sidebar user panel -->
+                <div class="user-panel">
+                    <div class="pull-left info">
+                        <p>Welcome  <span>@Session["AdminName"]</span></p>
+                        <a href="#"><i class="fa fa-circle text-success"></i> Online</a>
+                    </div>
+                </div>
+                <!-- sidebar menu: : style can be found in sidebar.less -->
+                <ul class="sidebar-menu">
+                    <li class="active">
+                        <a href="/Admin/DashBoard">
+                            <i class="fa fa-dashboard"></i> <span>Dashboard </span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/Admin/ServiceEnquiry">
+                            <i class="fa fa-list"></i> <span>Trade Requests</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/Admin/ManageSliders"><i class="fa fa-picture-o"></i> <span>Manage Home Slider</span></a>
+                    </li>
+                    <li>
+                        <a href="/Admin/ManageAccreditations"><i class="fa fa-shield"></i> <span>Manage Accreditations</span></a>
+                    </li>
+                    <li class="treeview">
+                        <a href=""><i class="fa fa-th-large"></i><span>Service Management</span><i class="fa fa-angle-left pull-right"></i></a>
+                        <ul class="treeview-menu">
+                            <li>
+                                <a href="/Admin/ManageCategory"><i class="fa fa-circle-o"></i> <span>Category</span></a>
+                            </li>
+                            <li>
+                                <a href="/Admin/ManageSubCategory"><i class="fa fa-circle-o"></i> <span>Sub Category</span></a>
+                            </li>
+                            <li>
+                                <a href="/Admin/ManageServices"><i class="fa fa-circle-o"></i><span>Manage Services</span></a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="treeview">
+                        <a href=""><i class="fa fa-th-large"></i><span>Area Management</span><i class="fa fa-angle-left pull-right"></i></a>
+                        <ul class="treeview-menu">
+                            <li>
+                                <a href="/Admin/ManageCities"><i class="fa fa-circle-o"></i> <span>Manage Cities</span></a>
+                            </li>
+                            <li>
+                                <a href="/Admin/ManageAreas"><i class="fa fa-circle-o"></i> <span>Manage Areas</span></a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="/Admin/ManageProvider"><i class="fa fa-th-large"></i><span>Manage Tradesperson</span></a>
+                    </li>
+                    @{ 
+                        BridgingAfricaDBEntities db = new BridgingAfricaDBEntities();
+                        bool pendingAc = db.ProviderAccreditationsTbls.Any(pa => pa.IsActive == true && pa.ProviderTbl.IsActive == true && pa.StatusID == 1);
+                    }
+
+                    <li>
+                        <a href="/Admin/ManageProvider/PendingAccreditation"><i class="fa fa-th-large"></i><span>
+                            Pending Accreditations
+                            @if (pendingAc)
+                            {
+                                @:<i class="fa fa-dot-circle-o" style="color:green"></i>
+                            }
+                            </span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/Admin/AllCustomers"><i class="fa fa-users"></i> <span>All Customers</span></a>
+                    </li>
+                    <li>
+                        <a href="/Admin/ManageContent"><i class="fa fa-edit"></i><span>Manage Content</span></a>
+                    </li>
+                    <li>
+                        <a href="/Admin/CategoryRequest"><i class="fa fa-list"></i> <span>Category Request</span></a>
+                    </li>
+                    <li>
+                        <a href="/Admin/ContactUs"><i class="fa fa-list"></i> <span>Customer Queries</span></a>
+                    </li>
+                    <li>
+                        <a href="/Admin/CustomerReview"><i class="fa fa-list"></i> <span>Customer Reviews</span></a>
+                    </li>
+                    <li>
+                        <a href="/Admin/ProviderReviews"><i class="fa fa-list"></i> <span>Tradesperson Reviews</span></a>
+                    </li>
+                    <li>
+                        <a href="/Admin/ChangePassword"><i class="fa fa-cog"></i> <span>Change Password</span></a>
+                    </li>
+                </ul>
+            </section>
+            <!-- /.sidebar -->
+        </aside>
+        <aside class="right-side">
+            @RenderBody()
+        </aside><!-- /.right-side -->
+    </div><!-- ./wrapper -->
+    <!-- jQuery 2.0.2 -->
+    <script src="~/AdminAssets/chosen_v1.8.7/docsupport/jquery-3.2.1.min.js" type="text/javascript"></script>
+    <script src="~/AdminAssets/chosen_v1.8.7/chosen.jquery.js" type="text/javascript"></script>
+    <script src="~/AdminAssets/chosen_v1.8.7/docsupport/prism.js" type="text/javascript" charset="utf-8"></script>
+    <script src="~/AdminAssets/chosen_v1.8.7/docsupport/init.js" type="text/javascript" charset="utf-8"></script>
+
+    <script src="~/AdminAssets/js/jquery.min.js" type="text/javascript"></script>
+    <!-- jQuery UI 1.10.3 -->
+    <script src="~/AdminAssets/js/jquery-ui-1.10.3.min.js" type="text/javascript"></script>
+    <!-- Bootstrap -->
+    <script src="~/AdminAssets/js/bootstrap.min.js" type="text/javascript"></script>
+    <!-- InputMask -->
+    @*<script src="~/AdminAssets/timepicker/bootstrap-timepicker.min.js"></script>*@
+    <script src="~/AdminAssets/js/plugins/input-mask/jquery.inputmask.js" type="text/javascript"></script>
+    <script src="~/AdminAssets/js/plugins/input-mask/jquery.inputmask.date.extensions.js" type="text/javascript"></script>
+    <script src="~/AdminAssets/js/plugins/input-mask/jquery.inputmask.extensions.js" type="text/javascript"></script>
+    <!-- AdminLTE App -->
+    <script src="~/AdminAssets/js/AdminLTE/app.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+        window.onbeforeunload = function () {
+            var inputs = document.getElementsByTagName("INPUT");
+            for (var i in inputs) {
+                if (inputs[i].type == "button" || inputs[i].type == "submit") {
+                    inputs[i].disabled = true;
+                    inputs[i].value = "Processing...";
+                }
+            }
+            var anchors = document.getElementsByTagName("a");
+            for (var j in anchors) {
+                anchors[j].style = "cursor: not-allowed;opacity: 0.5;";
+                anchors[j].href = "#";
+            }
+        };
+        window.addEventListener("pageshow", function (event) {
+            var historyTraversal = event.persisted ||
+                (typeof window.performance != "undefined" &&
+                    window.performance.navigation.type === 2);
+            if (historyTraversal) {
+                // Handle page restore.
+                window.location.reload();
+            }
+        });
+    </script>
+    <script>
+        $(function () {
+            //Timepicker
+            $('.timepicker').timepicker({
+                showInputs: false
+            })
+        })
+    </script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+﻿
+@{
+    ViewBag.Title = "PersonServices";
+    Layout = "~/Areas/MobileApp/Views/Shared/_LayoutMain.cshtml";
+}
+<script>
+    function getSubcateID() {
+        var sid = $("#serviceid").val();
+        if (sid) {
+            $.ajax({
+                url: '/api/HomeApi/GetSubcateByService',
+                type: 'GET',
+                data: { sid: sid },
+                success: function (data) {
+                    $("#scid").val(data);
+                }
+            });
+        }
+    }
+</script>
+<div class="page-content">
+    <div class="page-title page-title-small">
+        <h2><a href="/MobileApp/Home/ServiceDetails?scid=@Request.QueryString["scid"]&cid=@Request.QueryString["cid"]&PostalCodeID=@Request.QueryString["PostalCodeID"]&serviceid=@Request.QueryString["serviceid"]&pid=@Request.QueryString["pid"]"><i class="fa fa-arrow-left"></i></a>Tradesperson services</h2>
+    </div>
+    <div class="card header-card shape-rounded" data-card-height="180">
+        <div class="card-overlay bg-ba-theme opacity-95"></div>
+        <div class="card-overlay dark-mode-tint"></div>
+        <div class="card-bg"></div>
+    </div>  
+    <div class="card card-style">
+        <div class="content mb-0">
+            <h3 class="mb-3 text-center">Select tradesperson service</h3>
+            <p class="text-center mb-4">
+                Which service you want from tradesperson.
+            </p>
+            <form id="quoteForm" method="get" action="/MobileApp/Home/GetQuote">
+                <input type="hidden" value="@Request.QueryString["pid"]" name="pid" />
+                <input type="hidden" value="@Request.QueryString["PostalCodeID"]" name="PostalCodeID" />
+                <input type="hidden" value="@Request.QueryString["cid"]" name="cid" />
+                <input type="hidden" id="scid" name="scid" />
+
+                <div class="input-style input-style-2 mb-5">
+                    <span class="color-highlight input-style-1-active">Available Services</span>
+                    <em><i class="fa fa-angle-down"></i></em>
+                    @Html.DropDownList("serviceid", null, "Select a service", htmlAttributes: new { required = "required", onchange = "getSubcateID()" })
+                </div>
+
+                <button type="submit" class="btn btn-m btn-full mb-3 rounded-xl text-uppercase font-900 shadow-s bg-ba-theme">
+                    Continue
+                </button>
+            </form>
+
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,146 @@
+﻿@model BridgingAfrica.ProviderTbl
+
+@{
+    ViewBag.Title = "Create";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<section class="content-header">
+    <h1>Add Tradesperson<small>(Add Tradespersons)</small></h1>
+</section>
+<section class="content">
+    @using (Html.BeginForm("Create", "ManageProvider", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        <div class="row">
+            <div class="col-md-12">
+                @Html.AntiForgeryToken()
+                <div class="box box-warning">
+                    <div class="box-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Select Trade Type</label>
+                                    <select id="ProviderType" name="ProviderType" class="form-control" required>
+                                        <option value="">Select Type</option>
+                                        <option value="Self Employed">Self Employed</option>
+                                        <option value="Ltd. Company">Ltd. Company</option>
+                                        <option value="Looking to start a business">Looking to start a business</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Business Name</label>
+                                    @Html.EditorFor(model => model.ProviderName, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Owner Name</label>
+                                    @Html.EditorFor(model => model.OwnerName, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Email Id</label>
+                                    @Html.EditorFor(model => model.EmailID, new { htmlAttributes = new { @class = "form-control" } })
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Contact Number</label>
+                                    @Html.EditorFor(model => model.ContactNo, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Pricing (eg: $30 visit charge etc.)</label>
+                                    @Html.EditorFor(model => model.Pricing, new { htmlAttributes = new { @class = "form-control", placeholder = "$30 visit charge." } })
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Experience (eg: 10 Year, 6 Month etc.)</label>
+                                    @Html.EditorFor(model => model.Experience, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Total Team Members</label>
+                                    @Html.EditorFor(model => model.TeamCount, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Short Bio of your business</label>
+                                    @Html.TextAreaFor(model => model.ShortBio, new { @class = "form-control" })
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Business Area</label>
+                                    @Html.DropDownList("PostalCodeID", null, "---Search Business Area---", htmlAttributes: new { @class = "form-control chosen-select", required = "required" })
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Address Line 1</label>
+                                    @Html.EditorFor(model => model.AddressLine1, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                </div>
+                                <div class="form-group">
+                                    <label>Address Line 2</label>
+                                    @Html.EditorFor(model => model.AddressLine2, new { htmlAttributes = new { @class = "form-control" } })
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Website</label>
+                                    @Html.EditorFor(model => model.Website, new { htmlAttributes = new { @class = "form-control" } })
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Verified Badge</label>
+                                    <select id="IsVerified" name="IsVerified" class="form-control">
+                                        <option value="false">No</option>
+                                        <option value="true">Yes</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Sponsored?</label>
+                                    <select id="IsSponsored" name="IsSponsored" class="form-control">
+                                        <option value="false">No</option>
+                                        <option value="true">Yes</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Trade Test Certificate (pdf, image)</label>
+                                    <input id="TradeTestCerticate" type="file" name="TradeTestCerticate" class="form-control" />
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Police Clearance Certificate (pdf, image)</label>
+                                    <input id="PoliceClearance" type="file" name="PoliceClearance" class="form-control" />
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Reference letter from a rated company(pdf, image)</label>
+                                    <input id="ReferenceDoc" type="file" name="ReferenceDoc" class="form-control" />
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Banner Image : (Recommended size in the Aspect Ratio 1500 * 250 pixels)</label>
+                                    <input id="BannerImage" onchange="readURL(this,'#imgpreview');" type="file" name="BannerImage" class="form-control" />
+                                    <img id="imgpreview" class="img-thumbnail" style="width:100px" alt="Preview" />
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Profile Image : (Recommended size in the Aspect Ratio 300 * 300 pixels)</label>
+                                    <input id="ProfileImage" onchange="readURL(this,'#imgpreview1');" type="file" name="ProfileImage" class="form-control" />
+                                    <img id="imgpreview1" class="img-thumbnail" style="width:60px" alt="Preview" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-footer">
+                        <input type="submit" value="Create" class="btn btn-primary" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div>
+        <a href="/Admin/ManageProvider/Index" class="btn btn-dropbox">Back to List</a>
+    </div>
+</section>

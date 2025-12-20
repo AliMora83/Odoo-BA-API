@@ -1,0 +1,81 @@
+﻿
+@{
+    ViewBag.Title = "RequestCategoryTp";
+    Layout = "~/Areas/TradespersonApp/Views/Shared/_ProviderLayout.cshtml";
+
+    BridgingAfricaDBEntities db = new BridgingAfricaDBEntities();
+    HttpCookie reqCookies = Request.Cookies["P_UserID"];
+    int providerID = int.Parse(reqCookies.Value);
+    var ProviderName = db.ProviderTbls.Where(p => p.Id == providerID).Select(p => p.ProviderName).FirstOrDefault();
+}
+
+<script>
+    $(document).ready(function () {
+        $("#btnsave").click(function (e) {
+            var IsValid = checkvalues();
+            if (IsValid != "1") {
+                IsValid.focus();
+                $('#ErrorToast').html(IsValid[0].title);
+                $('#ErrorToast').toast('show');
+            }
+            else {
+                e.preventDefault();
+                var valdata = $("#myForm").serialize();
+                $.ajax({
+                    url: '/api/HomeApi/SendCategoryRequest',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: valdata,
+                    beforeSend: function () {
+                        $("body").mLoading();
+                    },
+                    success: function (data) {
+                        $("body").mLoading('hide');
+                        if (data.Status == "Success") {
+                            document.getElementById("SuccessHeader").innerHTML = "Success";
+                            document.getElementById("SuccessDetail").innerHTML = data.Message;
+                            $('#SuccessMessage').showMenu();
+                            $('#BtnSuccess').click(function () {
+                                window.location = "/TradespersonApp/Home/ManageServices";
+                            });
+                        }
+                        else {
+                            document.getElementById("ErrorHeader").innerHTML = "Alert";
+                            document.getElementById("ErrorDetails").innerHTML = data.Message;
+                            $('#ErrorMessage').showMenu();
+                        }
+                    },
+                    error: function (data) {
+                        $("body").mLoading('hide');
+                        alert(data.Message);
+                    }
+                });
+            }
+        });
+    });
+</script>
+
+<div class="page-content pb-5">
+    <div class="card card-style mt-2 mb-5">
+        <div class="content mb-0">
+            <h3 class="mb-5 text-center">Send a new category request</h3>
+            <form id="myForm" method="post">
+                <input name="RequesterName" type="hidden" value="@ProviderName" />
+                <input name="RequesterType" type="hidden" value="Tradesperson" />
+                <div class="input-style input-style-2 has-icon">
+                    <i class="input-icon fa fa-edit color-theme"></i>
+                    <span class="color-highlight input-style-1-active">Category Name</span>
+                    <em>(required)</em>
+                    <input name="CategoryName" id="CategoryName" class="form-control" type="text" title="Enter Category Name" required>
+                </div>
+                <div class="input-style input-style-2">
+                    <span class="color-highlight input-style-1-active">Message</span>
+                    <textarea name="Message" id="Message" class="form-control" style="height:100px" title="Enter Message"></textarea>
+                </div>
+                <a href="#" id="btnsave" class="btn btn-m btn-full mb-3 rounded-xl text-uppercase font-900 shadow-s bg-ba-theme">Submit</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+

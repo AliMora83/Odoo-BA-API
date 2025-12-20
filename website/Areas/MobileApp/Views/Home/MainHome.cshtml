@@ -1,0 +1,474 @@
+﻿
+@{
+    ViewBag.Title = "MainHome";
+    Layout = "~/Areas/MobileApp/Views/Shared/_LayoutMain.cshtml";
+
+    BridgingAfricaDBEntities db = new BridgingAfricaDBEntities();
+
+    var categories = db.CategoryTbls.Where(s => s.IsActive == true).Select(s => new { s.Id, s.CategoryName, s.Image, s.CategoryOrder }).OrderBy(s => s.CategoryOrder).ToList();
+
+    var featuredServices = db.ServiceTbls.Where(s => s.IsActive == true && s.IsFeatured == true).Select(s => new { s.Id, s.ServiceName, s.ServiceOrder }).OrderBy(s => s.ServiceOrder).ToList();
+}
+<style>
+    .fade-placeholder {
+        transition: opacity 0.5s ease-in-out;
+        opacity: 1;
+    }
+
+    #msg {
+        display: none;
+        color: red;
+        margin-top: 5px;
+    }
+
+    #map {
+        margin-bottom: 50px;
+        height: 300px;
+        width: 100%;
+        display: none;
+    }
+
+    .ui-menu-item {
+        white-space: nowrap; /* Prevent wrapping */
+        overflow: hidden; /* Hide overflow */
+        text-overflow: ellipsis; /* Show ... */
+        max-width: 330px; /* Adjust as needed */
+    }
+
+    .ui-autocomplete {
+        width: 330px !important;
+    }
+
+        .ui-autocomplete .ui-menu-item {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+</style>
+<script src="~/assets/js/locationmap.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const input = document.getElementById("txtsearchservice");
+        let categories = [];
+        let index = 0;
+        let interval = null;
+        let userTyping = false;
+
+        // Start rotation with fade
+        function startRotation() {
+            if (interval || userTyping) return;
+
+            interval = setInterval(() => {
+                fadePlaceholder(categories[index]);
+                index = (index + 1) % categories.length;
+            }, 2500);
+        }
+
+        // Stop rotation
+        function stopRotation() {
+            clearInterval(interval);
+            interval = null;
+        }
+
+        // Fade out → change text → fade in
+        function fadePlaceholder(text) {
+            input.style.opacity = 0;
+
+            setTimeout(() => {
+                input.setAttribute("placeholder", "Find a " + text);
+                input.style.opacity = 1;
+            }, 500); // match CSS transition
+        }
+
+        // Detect user typing
+        input.addEventListener("input", function () {
+            userTyping = true;
+            stopRotation();
+        });
+
+        // Resume rotation when user leaves input (only if empty)
+        input.addEventListener("blur", function () {
+            if (input.value.trim() === "") {
+                userTyping = false;
+                startRotation();
+            }
+        });
+
+        // Load suggestions from Web API
+        fetch("/api/HomeApi/GetCategoriesSuggestions")
+            .then(response => response.json())
+            .then(data => {
+                if (!data || data.length === 0) return;
+
+                categories = data;
+
+                // initial placeholder
+                fadePlaceholder(categories[0]);
+
+                startRotation();
+            });
+
+    });
+</script>
+
+<script>
+    $(document).ready(function () {
+        $('#txtsearchservice').autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: '/api/ProviderApi/GetServices?keyword=' + request.term,
+                    type: 'get',
+                    dataType: 'json',
+                    success: function (json) {
+                        if (json.length === 0) {
+                            response([{ label: "No service found", value: "" }]);
+                        } else {
+                            response($.map(json, function (data) {
+                                return {
+                                    label: data.ServiceName,
+                                    value: data.ServiceName,
+                                    id: data.Id,
+                                    cid: data.CategoryID,
+                                    scid: data.SubCategoryID,
+                                };
+                            }));
+                        }
+                    },
+                    error: function (xmlHttpRequest, textStatus, errorThrown) {
+                        console.log(errorThrown, textStatus);
+                    }
+                });
+            },
+            select: function (event, ui) {
+                if (ui.item.value === "") {
+                    event.preventDefault();
+                    $('#txtsearchservice').val("");
+                    $('#hdServiceID').val("");
+                    $('#hdServiceID').val("");
+                    $('#hdCID').val("");
+                    $('#hdSCID').val("");
+                    return false;
+                }
+                $('#hdServiceID').val(ui.item.id);
+                $('#hdCID').val(ui.item.cid);
+                $('#hdSCID').val(ui.item.scid);
+            },
+            close: function (event, ui) {
+                //$('#txtDestination').focus();
+            }
+        });
+
+        $('#txtCity').autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: '/MobileApp/Home/SearchCities?searchTerm=' + request.term,
+                    type: 'get',
+                    dataType: 'json',
+                    success: function (json) {
+                        if (json.length === 0) {
+                            response([{ label: "No city found", value: "" }]);
+                        } else {
+                            response($.map(json, function (data) {
+                                return {
+                                    label: data.CityName,
+                                    value: data.CityName,
+                                    id: data.Id,
+                                };
+                            }));
+                        }
+                    },
+                    error: function (xmlHttpRequest, textStatus, errorThrown) {
+                        console.log(errorThrown, textStatus);
+                    }
+                });
+            },
+            select: function (event, ui) {
+                if (ui.item.value === "") {
+                    event.preventDefault();
+                    $('#hdCityID').val("");
+                    $('#txtArea').val("");
+                    $('#hdAreaID').val("");
+                    return false;
+                }
+                $('#hdCityID').val(ui.item.id);
+                $('#txtArea').val("");
+                $('#hdAreaID').val("");
+                getAreas();
+            },
+            close: function (event, ui) {
+                //$('#txtDestination').focus();
+            }
+        });
+
+        function getAreas() {
+            $('#txtArea').autocomplete({
+                source: function (request, response) {
+                    var cityID = $("#hdCityID").val();
+                    if (!cityID) {
+                        alert("Please select city first");
+                    }
+                    else {
+                        $.ajax({
+                            url: '/MobileApp/Home/SearchAreas?cityId=' + cityID + '&searchTerm=' + request.term,
+                            type: 'get',
+                            dataType: 'json',
+                            success: function (json) {
+                                if (json.length === 0) {
+                                    response([{ label: "No area/suburb found", value: "" }]);
+                                } else {
+                                    response($.map(json, function (data) {
+                                        return {
+                                            label: data.AreaName,
+                                            value: data.AreaName,
+                                            id: data.Id,
+                                        };
+                                    }));
+                                }
+                            },
+                            error: function (xmlHttpRequest, textStatus, errorThrown) {
+                                console.log(errorThrown, textStatus);
+                            }
+                        });
+                    }
+                },
+                select: function (event, ui) {
+                    if (ui.item.value === "") {
+                        event.preventDefault();
+                        $('#hdAreaID').val("");
+                        return false;
+                    }
+                    $('#hdAreaID').val(ui.item.id);
+                },
+                close: function (event, ui) {
+                    //$('#txtDestination').focus();
+                }
+            });
+        }
+    });
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const form = document.getElementById("searchForm");
+        const btn = document.getElementById("btnSearch");
+
+        const txtService = document.getElementById("txtsearchservice");
+        const txtCity = document.getElementById("txtCity");
+        const txtArea = document.getElementById("txtArea");
+
+        btn.addEventListener("click", function (e) {
+            e.preventDefault(); // 🔒 extra safety
+
+            if (txtService.value.trim() === "") {
+                alert("Please select a service");
+                txtService.focus();
+                return false;
+            }
+
+            if (txtCity.value.trim() === "") {
+                alert("Please select a city/town");
+                txtCity.focus();
+                return false;
+            }
+
+            if (txtArea.value.trim() === "") {
+                alert("Please select an area/suburb");
+                txtArea.focus();
+                return false;
+            }
+            form.submit();
+        });
+
+        form.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                return false;
+            }
+        });
+    });
+</script>
+
+
+<div class="page-content">
+    <div class="page-title page-title-large mb-1">
+        <div class="row">
+            <div class="col-4">
+                <img src="~/AppAssets/images/logo.png" style="width:100px" />
+            </div>
+            <div class="col-8">
+                <h3 class="text-center">Bridging Africa</h3>
+                <p class="text-center">Connecting africa with affordable services</p>
+            </div>
+        </div>
+    </div>
+    <div class="card header-card shape-rounded" data-card-height="140">
+        <div class="card-overlay bg-theme opacity-95"></div>
+        <div class="card-overlay dark-mode-tint"></div>
+    </div>
+    <div class="content mb-3 mt-5">
+        <h5 class="float-left font-16 font-500">Popular Categories</h5>
+        <a class="float-right font-12 color-highlight mt-n1" href="/MobileApp/Home/Categories">View All</a>
+        <div class="clearfix"></div>
+    </div>
+
+    <div class="row mr-0 ml-0 mb-0">
+        @foreach (var item in categories)
+        {
+            <a href="/MobileApp/Home/SubCategories?cid=@item.Id" class="col-3 pl-0 pr-0">
+                <div class="card card-style" style="margin:5px">
+                    <img src="@item.Image" class="img-fluid">
+                    <div class="content pb-0 m-0 mb-1">
+                        <h6 class="font-12 font-500 m-0 text-center">@item.CategoryName</h6>
+                    </div>
+                </div>
+            </a>
+        }
+        <a href="#howto" class="col-3 pl-0 pr-0">
+            <div class="card card-style" style="margin:5px">
+                <img class="img-fluid" src="~/assets/images/how-to.png" alt="How to">
+                <div class="content pb-0 m-0 mb-1">
+                    <h6 class="font-12 font-500 m-0 text-center">How to</h6>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    @*<div class="double-slider text-center owl-carousel owl-no-dots">
+            @foreach (var item in categories)
+            {
+                <a href="/MobileApp/Home/SubCategories?cid=@item.Id">
+                    <div class="item bg-theme rounded-m shadow-m">
+                        <img class="category-img" src="@item.Image" />
+                        <h5 class="font-16 mt-2">@item.CategoryName</h5>
+                    </div>
+                </a>
+            }
+        </div>*@
+    <div class="content mt-3">
+        <div class="row">
+            <div class="col-12">
+                <a href="/MobileApp/Home/Categories" class="btn btn-full btn-m rounded-s text-uppercase font-800 shadow-xl bg-ba-theme">
+                    <i class="fa fa-search"></i> Find tradesperson around
+                </a>
+
+            </div>
+        </div>
+    </div>
+    <div class="card card-style mt-4">
+        <div class="content text-center">
+            <h2>Search Service</h2>
+        </div>
+        <div class="divider divider-small mb-3 bg-ba-theme"></div>
+        <div class="content">
+            <form id="searchForm" method="get" action="/MobileApp/Home/TradesPerson" onsubmit="return false;">
+                <div class="form-group">
+                    <div class="input-style input-style-2 mt-2 mb-4">
+                        <span class="color-highlight input-style-1-active">Search Service</span>
+                        <input type="text" name="service" autocomplete="off" class="fade-placeholder" id="txtsearchservice" placeholder="Search Service...">
+                    </div>
+                    <input type="hidden" name="sid" id="hdServiceID" />
+                    <input type="hidden" name="cid" id="hdCID" />
+                    <input type="hidden" name="scid" id="hdSCID" />
+                    <div class="input-style input-style-2 mt-2 mb-4">
+                        <span class="color-highlight input-style-1-active">Select City/Town</span>
+                        <input type="text" id="txtCity" autocomplete="off" class="fade-placeholder" placeholder="Search City/Town..." />
+                        <input type="hidden" name="CityID" id="hdCityID" />
+                    </div>
+                    <div class="input-style input-style-2">
+                        <span class="color-highlight input-style-1-active">Select Area/suburb</span>
+                        <input type="text" id="txtArea" autocomplete="off" class="fade-placeholder" placeholder="Search Area/Suburb..." />
+                        <input type="hidden" name="PostalCodeID" id="hdAreaID" />
+                    </div>
+                </div>
+                <div class="form-group mt-4 text-center">
+                    <button type="button" id="btnSearch" style="width:100%;border-color: #0b7a43 !important;" class="btn btn-full btn-m rounded-s text-uppercase font-800 bg-ba-theme">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @*<div class="card card-style mt-4">
+            <div class="content text-center">
+                <h2>Our Service areas</h2>
+                <p class="boxed-text-xl">
+                    Our Service areas around the zimbabwe
+                </p>
+            </div>
+            <div class="divider divider-small mb-3 bg-ba-theme"></div>
+            <div class="content">
+                <div id="map" style="height: 500px; width: 100%;"></div>
+            </div>
+        </div>*@
+
+    <div id="howto" class="card card-style mt-4">
+        <div class="content text-center">
+            <img src="/assets/images/icons/how-it-works.png" alt="Bridging Africa" style="width: 100%;" />
+            <h2>How does it work</h2>
+        </div>
+        <div class="divider divider-small mb-3 bg-ba-theme"></div>
+        <div class="content">
+            <div class="d-flex mb-2 pb-3">
+                <div>
+                    <span class="home-number">1.</span>
+                </div>
+                <div>
+                    <h5 class="font-16 font-500">Search your job category and subcategory for best match.</h5>
+                </div>
+            </div>
+            <div class="d-flex mb-2 pb-3">
+                <div>
+                    <span class="home-number">2.</span>
+                </div>
+                <div>
+                    <h5 class="font-16 font-500">Enter your location for tradesperson around.</h5>
+                </div>
+            </div>
+            <div class="d-flex mb-2">
+                <div>
+                    <span class="home-number">3.</span>
+                </div>
+                <div>
+                    <h5 class="font-16 font-500">Get a wide list of best and verified tradesperson around you.</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-style mt-4">
+        <div class="content text-center">
+            <h2>Why use Bridging Africa</h2>
+        </div>
+        <div class="divider divider-small mb-3 bg-ba-theme"></div>
+        <div class="content">
+            <div class="row">
+                <div class="col-12">
+                    <div class="text-center mb-5">
+                        <div class="icon mb-3">
+                            <img src="~/assets/images/icons/service2.png" alt="Bridging Africa">
+                        </div>
+                        <h6 class="font-500">Access our community of top-rated<br /> tradespeople</h6>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="text-center">
+                        <div class="icon mb-3">
+                            <img src="~/assets/images/icons/Seconds.png" alt="Bridging Africa" />
+                        </div>
+                        <h6 class="font-500">Find a tradesperson in seconds</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-style">
+        <div class="content mb-1 text-center">
+            <h3 class="mb-4">Find us on socials</h3>
+            <a href="#" class="mr-3 mb-3 icon icon-m bg-facebook rounded-xl"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" class="mr-3 mb-3 icon icon-m rounded-xl"><img style="width: 45px;margin-bottom: 8px;" src="~/AppAssets/images/x-logo.png" /></a>
+            <a href="#" class="mr-3 mb-3 icon icon-m bg-linkedin rounded-xl"><i class="fab fa-linkedin"></i></a>
+            <a href="#" class="mr-3 mb-3 icon icon-m bg-linkedin rounded-xl"><i class="fab fa-youtube"></i></a>
+            <a href="#" class="mr-3 mb-3 icon icon-m bg-instagram rounded-xl"><i class="fab fa-instagram "></i></a>
+        </div>
+    </div>
+</div>

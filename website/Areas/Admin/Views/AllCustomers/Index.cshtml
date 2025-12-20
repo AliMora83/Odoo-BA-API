@@ -1,0 +1,125 @@
+﻿@using PagedList.Mvc;
+@using PagedList;
+@model IPagedList<BridgingAfrica.CustomerTbl>
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+<section class="content-header">
+    <h1>All Customers<small>(Add, View, Edit, Delete Customers)</small></h1>
+</section>
+<section class="content">
+    <div class="row">       
+        <div class="col-md-12">
+            @if (TempData["FailMessage"] != null)
+            {
+                <div id="fail-alert" class="alert alert-danger text-center">@TempData["FailMessage"]</div>
+            }
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div id="success-alert" class="alert alert-success text-center">@TempData["SuccessMessage"]</div>
+            }
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h3 class="box-title">All Customers (@Model.TotalItemCount of <span style="color:green"> @Model.Count </span> Showing)</h3>
+                    <a href="/Admin/AllCustomers/ExportToExcel" class="btn btn-dropbox pull-right" target="_blank" style="float:right;margin-top:8px;margin-right:8px;color:white">Export To Excel</a>
+                </div>
+                <div class="box-body">
+                    <div class="form-group">
+                        @using (Html.BeginForm("Index", "AllCustomers", FormMethod.Get))
+                        {
+                            @Html.DropDownList("CustomerID", null, "Search Customer Name", htmlAttributes: new { @class = "form-control chosen-select", onchange = "this.form.submit()" })
+                        }
+                    </div>
+                    @if (Model.Count() > 0)
+                    {
+                        <div class="table-responsive">
+
+                            <table class="table table-striped table-bordered table-hover">
+                                <tr>
+                                    <th>
+                                        First Name
+                                    </th>
+                                    <th>
+                                        Last Name
+                                    </th>
+                                    <th>
+                                        Email ID
+                                    </th>
+                                    <th>
+                                        Mobile Number
+                                    </th>
+                                    <th>
+                                        Created Date
+                                    </th>
+                                    <th>
+                                        Modified Date
+                                    </th>
+
+                                    <th>
+                                        Action
+                                    </th>
+                                </tr>
+
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.FirstName)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.LastName)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.EmailID)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.MobileNo)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.CreatedDate)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.ModifiedDate)
+                                        </td>
+
+                                        <td>
+
+                                            <a data-toggle="modal" data-target="#modal-delete-@item.Id" class="btn btn-xs btn-danger">Delete <i class="fa fa-trash-o"></i></a>
+                                            <div class="modal fade text-center" id="modal-delete-@item.Id">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                <span aria-hidden="true">&times;</span>
+                                                            </button>
+                                                            <h4 class="modal-title">Customer item  Delete Confirmation</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <h4>Are you Sure you want to delete Customer item</h4>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
+                                                            <a class="btn btn-danger pull-right" href="@Url.Action("Delete", "AllCustomers", new { id = item.Id })">Delete</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </table>
+                            @Html.PagedListPager(Model, Page => Url.Action("Index", "Custmer", new { Page }))
+                        </div>
+                    }
+                    else
+                    {
+                        <h4 class="box-title">Record Not Found</h4>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

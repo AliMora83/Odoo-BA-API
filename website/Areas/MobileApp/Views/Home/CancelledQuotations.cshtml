@@ -1,0 +1,59 @@
+﻿
+@{
+    ViewBag.Title = "CancelledQuotations";
+    Layout = "~/Areas/MobileApp/Views/Shared/_LayoutMain.cshtml";
+}
+
+<script>
+    $(document).ready(function () {
+        var UserID = localStorage.getItem("UserID");
+        $.ajax({
+            url: '/api/HomeApi/GetCancelledQuotations?custID=' + UserID,
+            type: "get",
+            dataType: "JSON",
+            beforeSend: function () {
+                $("body").mLoading();
+            },
+            success: function (json) {
+                $("body").mLoading('hide');
+                if (json.result.length > 0) {
+                    json.result.forEach(function (item) {
+                        let createdate = new Date(item.CreatedDate).toDateString();
+                        $("#tab-9").append(
+                            "<div class='card card-style bg-theme p-2'>" +
+                            "<div class='container'>" +
+                            "<h5 class='font-500 mb-0'>Tradesperson: <span class='font-400'>" + item.ProviderName + "</span></h5>" +
+                            "<h5 class='font-500 mb-0 font-14'>Service: <span class='font-400'>" + item.ServiceName + "</span></h5>" +
+                            "<h5 class='font-500 mb-0 font-14'>Created on: <span class='font-400'>" + createdate + "</span></h5>" +
+                            "</div>" +
+                            "</div>"
+                        );
+                    });
+                } else {
+                    $("#tab-9").append(
+                        "<div class='card card-style bg-theme pb-3'>" +
+                        "<div class='container'>" +
+                        "<h5 class='font-500 mt-3'>No records found</h5>" +
+                        "</div>" +
+                        "</div>"
+                    );
+                }
+            },
+        });
+    });
+</script>
+<div class="page-content">
+    <div class="page-title page-title-small">
+        <h2><a href="/MobileApp/Home/MyAccount"><i class="fa fa-arrow-left"></i></a>Cancelled Requests</h2>
+    </div>
+    <div class="card header-card shape-rounded" data-card-height="150">
+        <div class="card-overlay bg-ba-theme opacity-95"></div>
+        <div class="card-overlay dark-mode-tint"></div>
+        <div class="card-bg"></div>
+    </div>
+    <div class="clearfix mb-3"></div>
+    <div id="tab-9">
+
+    </div>
+</div>
+

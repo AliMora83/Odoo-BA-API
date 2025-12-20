@@ -1,0 +1,188 @@
+﻿
+@{
+    ViewBag.Title = "MainHome";
+    Layout = "~/Areas/MobileApp/Views/Shared/_LayoutMain.cshtml";
+}
+<script>
+    sessionStorage.clear();    
+    localStorage.removeItem("P_UserID");
+    const expiryDate = new Date();
+    expiryDate.setMinutes(expiryDate.getMinutes() - 2000); 
+    setCookie("P_UserID", "", expiryDate);
+
+    function myFunction() {
+        var mobileNumber = $('#MobileNo').val();
+        if (mobileNumber == "") {
+            alert('Please enter mobile number');
+        }
+        else {
+            $.ajax({
+                url: '/api/HomeApi/SendOTP?mNumber=' + mobileNumber,
+                type: "Post",
+                dataType: "JSON",
+                beforeSend: function () {
+                    $("body").mLoading();
+                },
+                success: function (json) {
+                    $("body").mLoading('hide');
+                    if (json.Status == "Success") {
+                        var otp = json.userotp;
+                        var pNumber = json.MobileNumber;
+                        sessionStorage.setItem("OTP", otp);
+                        sessionStorage.setItem("MobileNumber", pNumber);
+                        var otp = sessionStorage.getItem("OTP");
+                        document.getElementById("divMobileNo").style.display = "none";
+                        document.getElementById("divOTP").style.display = "inline";
+                        document.getElementById("txtOTP").value = otp;
+                    }
+                    else {
+                        alert('Something goes wrong, please try again');
+                    }
+                },
+            });
+        }
+    }
+    function ShowMobileNumber() {
+        document.getElementById("divMobileNo").style.display = "inline";
+        document.getElementById("divOTP").style.display = "none";
+    }
+    function VerifyOTP() {
+        var mobile = sessionStorage.getItem("MobileNumber");
+        var textboxValue = document.getElementById("txtOTP").value;
+        var SendOTP = sessionStorage.getItem("OTP");
+        if (textboxValue == SendOTP) {           
+            $('#lnkVerify').html('Processing...');
+            $.ajax({
+                url: '/api/HomeApi/VerifyCustomer?mobile=' + mobile,
+                type: 'POST',
+                dataType: 'json',
+                beforeSend: function () {
+                    $("body").mLoading();
+                },
+                success: function (data) {
+                    $("body").mLoading('hide');
+                    if (data.Status == "Success") {
+                        sessionStorage.clear();
+                        document.cookie = "UserID=" + data.UserID + "; max-age=31536000; path=/";
+                        localStorage.setItem("UserID", data.UserID);
+                        if (data.UserID && window.Android) {
+                            Android.sendUserIdToApp(data.UserID,"customer");
+                        }
+                        document.getElementById("SuccessHeader").innerHTML = "Success";
+                        document.getElementById("SuccessDetail").innerHTML = data.Message;
+                        $('#SuccessMessage').showMenu();
+                        $('#BtnSuccess').click(function () {
+                            var pid = localStorage.getItem("pid");
+                            var serviceid = localStorage.getItem("serviceid");
+                            var scid = localStorage.getItem("scid");
+                            var cid = localStorage.getItem("cid");
+                            var postalcode = localStorage.getItem("postalcode");
+                            if (pid != null) {
+                                window.location = "/MobileApp/Home/GetQuote?scid=" + scid + "&cid=" + cid + "&PostalCodeID=" + postalcode + "&serviceid=" + serviceid + "&pid=" + pid;
+                            }
+                            else {
+                                window.location = "/MobileApp/Home/MainHome"
+                            }
+                        });
+                    }
+                    else {
+                        window.location = "/MobileApp/Home/ChoseLocation"
+                    }
+                },
+                error: function (data) {
+                    alert(data.Message);
+                    $("body").mLoading('hide');
+                }
+            });
+        }
+        else {
+            document.getElementById("ErrorHeader").innerHTML = "Invalid OTP";
+            document.getElementById("ErrorDetails").innerHTML = "OTP you entered is incorrect";
+            $('#ErrorMessage').showMenu();
+        }
+
+    }
+    function ResentOTP() {
+        $.ajax({
+            url: '/api/HomeApi/SendOTP?mNumber=' + sessionStorage.getItem("MobileNumber"),
+            type: "Post",
+            dataType: "JSON",
+            beforeSend: function () {
+                $("body").mLoading();
+            },
+            success: function (json) {
+                $("body").mLoading('hide');
+                if (json.Status == "Success") {
+                    var otp = json.userotp;
+                    var pNumber = json.MobileNumber;
+                    sessionStorage.setItem("OTP", otp);
+                    sessionStorage.setItem("MobileNumber", pNumber);
+                    var otp = sessionStorage.getItem("OTP");
+                    document.getElementById("divMobileNo").style.display = "none";
+                    document.getElementById("divOTP").style.display = "inline";
+                }
+                else {
+                    document.getElementById("ErrorHeader").innerHTML = "Invalid OTP";
+                    document.getElementById("ErrorDetails").innerHTML = "OTP you entered is incorrect";
+                    $('#ErrorMessage').showMenu();
+                }
+            },
+        });
+
+    }
+
+    function goBackhome() {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location = "/MobileApp/Home/MainHome";
+    }
+</script>
+<div class="page-content pb-0">
+    <div class="card card-style mt-2 mb-2">
+        <div class="page-title page-title-small mb-2">
+            <h4 class="text-center">Customer SignIn/SignUp</h4>
+        </div>
+    </div>
+    <div class="card card-style">
+        <div class="page-title page-title-small mb-2">
+            <h4>Mobile Number Verification</h4>
+        </div>
+
+        <div id="divMobileNo" class="content mb-0 mt-1 pt-2">
+            <div class="input-style has-icon input-style-1 input-required">
+                <i class="input-icon fa fa-mobile-alt color-theme"></i>
+                <span>Mobile Number</span>
+                <em>(required)</em>
+                <input type="text" id="MobileNo" name="MobileNo" placeholder="Enter Mobile Number" required autocomplete="off" class="font-18" />
+            </div>
+            <p class="mt-20">We will send 6 Digit OTP on this Number</p>
+            <a href="#" type="submit" class="btn btn-full btn-m shadow-l rounded-s bg-ba-theme text-uppercase font-900 top-20 m-2" onclick="myFunction()">Send OTP</a>
+            <hr />
+            <a href="#" onclick="goBackhome()" class="btn btn-full btn-m shadow-l rounded-s bg-blue2-dark text-uppercase font-900 top-20 m-2">Back to home</a>
+        </div>
+
+        <div id="divOTP" class="content mb-0 mt-1 pt-2" style="display:none">
+            <div class="input-style has-icon input-style-1 input-required">
+                <i class="input-icon fa fa-mobile-alt color-theme"></i>
+                <span>Enter OTP</span>
+                <em>(required)</em>
+                <input type="text" id="txtOTP" name="txtOTP" placeholder="Enter your 6 digit OTP" autocomplete="off" class="font-18"  />
+            </div>
+            <a href="#" type="submit" id="lnkVerify" class="btn btn-full btn-m shadow-l rounded-s bg-ba-theme text-uppercase font-900 top-20 m-2" onclick="VerifyOTP()">Verify OTP</a>
+            <hr />
+            <div style="margin-bottom:15px">
+                <a href="#" id="ResentOTP" onclick="ResentOTP()">Resend OTP</a>
+                <a href="#" id="ChangeMobileNumber" onclick="ShowMobileNumber()" style="margin-left:113px">Change Mobile Number</a>
+                <hr />
+                <a href="#" onclick="goBackhome()" class="btn btn-full btn-m shadow-l rounded-s bg-blue2-dark text-uppercase font-900 top-20 m-2">Back to home</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+<div id="menu-success-1" class="menu menu-box-bottom menu-box-detached rounded-m" data-menu-height="250" data-menu-effect="menu-over">
+    <h3 class="text-center mt-4 mb-4"><i class="fa fa-3x fa-check-circle color-green1-dark"></i></h3>
+    <h4 class="text-center mt-3 mb-4 text-uppercase font-600" id="sucessh1">OTP Verified Successfully</h4>
+    <a href="/MobileApp/Home/ChoseLocation" id="okeybutton" class="btn btn-m btn-center-m button-s shadow-l rounded-s text-uppercase font-900 bg-green1-light" target="_self">Great</a>
+</div>
+
