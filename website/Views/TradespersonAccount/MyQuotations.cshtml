@@ -1,0 +1,140 @@
+﻿
+@{
+    ViewBag.Title = "MyQuotations";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    BridgingAfricaDBEntities db = new BridgingAfricaDBEntities();
+
+    int providerID = int.Parse(Session["P_UserID"].ToString());
+    var result = db.ProviderEnquiryTbls.Where(a => a.IsActive && a.ProviderID == providerID && a.StatusID != 6).Select(c => new { c.Id, c.ProviderID, c.CustomerID, Name = c.CustomerTbl.FirstName + " " + c.CustomerTbl.LastName, Title = c.CategoryTbl.CategoryName + " > " + c.SubCategoryTbl.SubCategoryName, c.WorkerUrgency, c.JobDetail, c.ServiceTbl.ServiceName, c.StatusID, c.IsPaid, c.CreatedDate, c.StatusTbl.ColorCode, c.StatusTbl.StatusName, c.ProviderTbl.FreeLeads, c.CustomerTbl.AverageRating, Reviews = c.ProviderReviewsTbls.Count(s => s.IsActive == true) }).OrderByDescending(c => c.Id).ToList();
+}
+
+<main class="main-wrapper">
+    <!-- Start Breadcrumb Area  -->
+    <div class="axil-breadcrumb-area">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 col-md-8">
+                    <div class="inner">
+                        <ul class="axil-breadcrumb">
+                            <li class="axil-breadcrumb-item"><a href="/">Home</a></li>
+                            <li class="separator"></li>
+                            <li class="axil-breadcrumb-item active" aria-current="page">My Requests</li>
+                        </ul>
+                        <h1 class="title">My Requests</h1>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-4">
+                    <div class="inner">
+                        <div class="bradcrumb-thumb">
+                            <img src="/assets/images/logo/logoheader.png" alt="Image" style="height:140px;" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="axil-dashboard-area mb--80">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="axil-dashboard-area mt--30">
+                    <div class="container">
+                        <div class="axil-dashboard-warp">
+                            <div class="axil-dashboard-author">
+                                <div class="media">
+                                    <div class="media-body">
+                                        <h5 class="title mb-0">Hello @Session["ProviderName"]</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                @Html.Action("_AccountDetail", "TradespersonAccount")
+                                <div class="col-xl-9 col-md-8">
+                                    @if (TempData["FailMessage"] != null)
+                                    {
+                                        <div id="fail-alert" class="alert alert-danger text-center">@TempData["FailMessage"]</div>
+                                    }
+                                    @if (TempData["SuccessMessage"] != null)
+                                    {
+                                        <div id="success-alert" class="alert alert-success text-center mb-3">@TempData["SuccessMessage"]</div>
+                                    }
+                                    @if (result.Count > 0)
+                                    {
+                                        <div class="axil-dashboard-order">
+                                            <div class="table-responsive" style="border: 1px solid #C0C0C0; border-radius: 5px;">
+                                                <table class="table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th scope="col">Customer</th>
+                                                            <th scope="col">Urgency</th>
+                                                            <th scope="col">Service</th>
+                                                            <th scope="col">Status</th>
+                                                            <th scope="col">Date</th>
+                                                            <th scope="col">Action</th>
+                                                        </tr>
+                                                    </thead>
+                                                    @foreach (var item in result)
+                                                    {
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>
+                                                                    @item.Name
+                                                                    <div class="product-reviews-summary">
+                                                                        <div class="rating-summary">
+                                                                            <h4 class="rating-result mb--0"><span style="width:@item.AverageRating%"></span></h4>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                                <td>@item.WorkerUrgency</td>
+                                                                <td>@item.ServiceName</td>
+                                                                <td><span style="color:@item.ColorCode">@item.StatusName</span></td>
+                                                                <td>@item.CreatedDate.ToString("dd-MMM-yyyy")</td>
+                                                                <td>
+                                                                    @if (item.IsPaid == true)
+                                                                    {
+                                                                        <a href="/TradespersonAccount/QuotationDetails?qid=@item.Id" class='axil-btn view-btn'>View Details</a>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        if (item.FreeLeads > 0)
+                                                                        {
+                                                                            <a href="/TradespersonAccount/QuotationDetails?qid=@item.Id&free=1" class='axil-btn view-btn'>View Details</a>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <a href="/TradespersonAccount/PaymentDetails?qid=@item.Id&cid=@item.CustomerID" class='axil-btn view-btn'>View Details</a>
+                                                                        }
+                                                                    }
+
+                                                                    @if (item.Reviews > 0)
+                                                                    {
+                                                                        <a href="/TradespersonAccount/review?providerID=@item.ProviderID&qid=@item.Id&custid=@item.CustomerID" class='axil-btn view-btn text-center mt--5'>Reviewed</a>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        if (item.StatusID == 4)
+                                                                        {
+                                                                            <a href="/TradespersonAccount/review?providerID=@item.ProviderID&qid=@item.Id&custid=@item.CustomerID" class='axil-btn view-btn text-center mt--5'>Write a reviews</a>
+                                                                        }
+                                                                    }
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    }
+                                                </table>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <h4>No Record Found</h4>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
