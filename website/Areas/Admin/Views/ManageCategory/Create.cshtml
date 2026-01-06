@@ -1,0 +1,48 @@
+﻿@model BridgingAfrica.CategoryTbl
+
+@{
+    ViewBag.Title = "Create";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<section class="content-header">
+    <h1>Add Category<small>(Add Category)</small></h1>
+</section>
+<section class="content">
+
+    @using (Html.BeginForm("Create", "ManageCategory", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.AntiForgeryToken()
+                <div class="box box-warning">
+                    <div class="box-body">
+                        <div class="form-group">
+                            <label>Category Name</label>
+                            @Html.EditorFor(model => model.CategoryName, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                        </div>
+
+                        <div class="form-group">
+                            <label>Category Order</label>
+                            @Html.EditorFor(model => model.CategoryOrder, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                        </div>
+                        <div class="form-group">
+                            <label>Category Image : (Recommended size in the Aspect Ratio 150 * 150 pixels)</label>
+                            <input id="Image" onchange="readURL(this,'#imgpreview');" type="file" name="ImagePath" required />
+                            <img id="imgpreview" class="img-thumbnail" style="width:150px" alt="Preview" />
+                        </div>
+
+                    </div>
+                    <div class="box-footer">
+                        <input type="submit" value="Create" class="btn btn-primary" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div>
+        <a href="/Admin/ManageCategory/Index" class="btn btn-dropbox">Back to List</a>
+    </div>
+</section>

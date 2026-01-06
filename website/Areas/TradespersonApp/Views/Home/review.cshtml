@@ -1,0 +1,98 @@
+﻿@model BridgingAfrica.ProviderReviewsTbl
+@{
+    ViewBag.Title = "review";
+    Layout = "~/Areas/TradespersonApp/Views/Shared/_ProviderLayout.cshtml";
+}
+
+<script>
+    $(document).ready(function () {
+        $("#btnsave").click(function (e) {
+            e.preventDefault();
+            var IsValid = checkvalues();
+            if (IsValid !== "1") {
+                IsValid.focus();
+                $('#ErrorToast').html(IsValid[0].title);
+                $('#ErrorToast').toast('show');
+                return;
+            }
+            var valdata = $("#myForm").serialize();
+            $.ajax({
+                url: "/api/ProviderApi/SaveReview",
+                type: 'POST',
+                dataType: 'json',
+                data: valdata,
+                beforeSend: function () {
+                    $("body").mLoading();
+                },
+                success: function (data) {
+                    $("body").mLoading('hide');
+                    if (data.Status == "Success") {
+                        document.getElementById("SuccessHeader").innerHTML = "Success";
+                        document.getElementById("SuccessDetail").innerHTML = data.Message;
+                        $('#SuccessMessage').showMenu();
+                        $('#BtnSuccess').click(function () {
+                            window.location = "/TradespersonApp/Home/MyServices"
+                        });
+                    }
+                    else {
+                        document.getElementById("ErrorHeader").innerHTML = "Alert!";
+                        document.getElementById("ErrorDetails").innerHTML = data.Message;
+                        $('#ErrorMessage').showMenu();
+                    }
+                },
+                error: function () {
+                    $("body").mLoading('hide');
+                    alert("Error please try again");
+                }
+            });
+        });
+    });
+</script>
+<div class="page-content">
+    <div class="page-title page-title-small">
+        <h2><a href="/TradespersonApp/Home/MyServices"><i class="fa fa-arrow-left"></i></a>Write Your Review</h2>
+    </div>
+    <div class="card header-card shape-rounded" data-card-height="200">
+        <div class="card-overlay bg-ba-theme opacity-95"></div>
+        <div class="card-overlay dark-mode-tint"></div>
+        <div class="card-bg"></div>
+    </div>
+    <div class="card card-style custom_card">
+        <div class="content mt-2 mb-0 pt-2 pb-2">
+            <h5 class="text-center mb-1 font-600">Write Your Review</h5>
+            <p class="text-center mb-3">Write about your experience with service request and customer behavior etc.</p>
+            @if (Model != null)
+            {
+                <div class="input-style input-style-2">
+                    <span class="color-highlight input-style-1-active">Rating</span>
+                    @Html.DropDownList("Rating", null, "Select Rating", htmlAttributes: new { @disabled = "disabled", title = "Select Rating" })
+                </div>
+                <div class="input-style input-style-2 pt-2">
+                    <span class="color-highlight input-style-1-active">Your Review</span>
+                    <em>(required)</em>
+                    <textarea name="Review" style="height:150px" class="form-control" title="Write a review" required readonly="readonly">@Model.Review</textarea>
+                </div>
+                <h5 class="text-center font-500">You already reviewed this service request</h5>
+            }
+            else
+            {
+                <form id="myForm" method="post">
+                    <div class="input-style input-style-2">
+                        <span class="color-highlight input-style-1-active">Rating</span>
+                        @Html.DropDownList("Rating", null, "Select Rating", htmlAttributes: new { required = "required", title = "Select Rating" })
+                    </div>
+                    <div class="input-style input-style-2 pt-2">
+                        <span class="color-highlight input-style-1-active">Your Review</span>
+                        <em>(required)</em>
+                        <textarea name="Review" style="height:150px" class="form-control" title="Write a review" required></textarea>
+                        <input type="hidden" id="QID" name="QID" value="@Request.QueryString["qid"]" />
+                        <input type="hidden" id="CustID" name="CustID" value="@Request.QueryString["custid"]" />
+                        <input type="hidden" id="ProviderID" name="ProviderID" value="@Request.QueryString["providerID"]" />
+                    </div>
+                    <a id="btnsave" href="#" class="btn btn-m btn-full rounded-sm shadow-l bg-ba-theme text-uppercase font-900">Submit</a>
+                </form>
+            }
+        </div>
+    </div>
+</div>
+

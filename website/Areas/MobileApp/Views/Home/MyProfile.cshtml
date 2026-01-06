@@ -1,0 +1,165 @@
+﻿
+@{
+    ViewBag.Title = "MyProfile";
+    Layout = "~/Areas/MobileApp/Views/Shared/_LayoutMain.cshtml";
+}
+<script>
+    $(document).ready(function () {
+        var UserID = localStorage.getItem("UserID");
+        $.ajax({
+            url: '/api/HomeApi/GetCustomerDATA?userID=' + UserID,
+            type: "Post",
+            dataType: "JSON",
+            beforeSend: function () {
+                $("body").mLoading();
+            },
+            success: function (json) {
+                $("body").mLoading('hide');
+                if (json.Status == "Success") {
+                    $("#Id").val(json.result.Id);
+                    $("#username").attr("data-username", json.result.FirstName);
+                    $("#FirstName").val(json.result.FirstName);
+                    $("#LastName").val(json.result.LastName);
+                    $("#EmailID").val(json.result.EmailID);
+                    $("#MobileNumber").val(json.result.MobileNo);
+                    $("#txtAddress").val(json.result.AreaName);
+                    $("#hdAreaID").val(json.result.PostalCodeID);
+                    $("#AddressLine1").val(json.result.AddressLine1);
+                    $("#AddressLine2").val(json.result.AddressLine2);
+                }
+            },
+        });
+        $('#txtAddress').autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: '/api/HomeApi/GetAreas?keyword=' + request.term,
+                    type: 'get',
+                    dataType: 'json',
+                    success: function (json) {
+                        response($.map(json, function (data, id) {
+                            return {
+                                label: data.AreaName,
+                                value: data.AreaName,
+                                id: data.Id
+                            };
+                        }));
+                    },
+                    error: function (xmlHttpRequest, textStatus, errorThrown) {
+                        console.log(errorThrown, textStatus);
+                    }
+                });
+            },
+            select: function (event, ui) {
+                $('#hdAreaID').val(ui.item.id);
+            },
+            close: function (event, ui) {
+                $('#txtDestination').focus();
+            }
+        });
+
+        $("#btnsave").click(function (e) {
+            var IsValid = checkvalues();
+            if (IsValid != "1") {
+                IsValid.focus();
+                $('#ErrorToast').html(IsValid[0].title);
+                $('#ErrorToast').toast('show');
+            }
+            else {
+                var areaId = $('#hdAreaID').val();
+                if (areaId != null && areaId != "") {
+                    e.preventDefault();
+                    var valdata = $("#myForm").serialize();
+                    $.ajax({
+                        url: '/api/HomeApi/UpdateProfileData',
+                        type: 'POST',
+                        dataType: 'json',
+                        data: valdata,
+                        beforeSend: function () {
+                            $("body").mLoading();
+                        },
+                        success: function (data) {
+                            $("body").mLoading('hide');
+                            if (data.Status == "Success") {
+                                document.getElementById("SuccessHeader").innerHTML = "Success";
+                                document.getElementById("SuccessDetail").innerHTML = data.Message;
+                                $('#SuccessMessage').showMenu();
+                            }
+                            else {
+                                document.getElementById("ErrorHeader").innerHTML = "Alert";
+                                document.getElementById("ErrorDetails").innerHTML = data.Message;
+                                $('#ErrorMessage').showMenu();
+                            }
+                        },
+                        error: function (data) {
+                            $("body").mLoading('hide');
+                            alert(data.Message);
+                        }
+                    });
+                }
+                else {
+                    $('#ErrorToast').html("Please select you area/Suburb from list");
+                    $('#ErrorToast').toast('show');
+                }
+            }
+        });
+    });
+</script>
+<div class="page-content">
+    <div class="page-title page-title-small">
+        <h2 id="username" data-username="" class="greeting-text"></h2>
+    </div>
+    <div class="card header-card shape-rounded" data-card-height="180">
+        <div class="card-overlay bg-ba-theme opacity-95"></div>
+        <div class="card-overlay dark-mode-tint"></div>
+        <div class="card-bg"></div>
+    </div>
+    <div class="card card-style">
+        <div class="content">
+            <p class="custom_Profile_P">Update your profile here</p>
+        </div>
+    </div>
+    <div class="card card-style">
+        <div class="content mb-0">
+            <form id="myForm" method="post">
+                <input id="Id" name="Id" type="hidden" />
+                <input id="MobileNumber" name="MobileNo" type="hidden" />
+                <div class="input-style input-style-2 has-icon">
+                    <i class="input-icon fa fa-user color-theme"></i>
+                    <span class="color-highlight input-style-1-active">First Name</span>
+                    <em>(required)</em>
+                    <input id="FirstName" name="FirstName" class="form-control" type="text" title="Enter First Name" required>
+                </div>
+                <div class="input-style input-style-2 has-icon">
+                    <i class="input-icon fa fa-user color-theme"></i>
+                    <span class="color-highlight input-style-1-active">Last Name</span>
+                    <em>(required)</em>
+                    <input id="LastName" name="LastName" class="form-control" type="text" title="Enter Last Name" required>
+                </div>
+                <div class="input-style input-style-2 has-icon">
+                    <i class="input-icon fa fa-envelope color-theme"></i>
+                    <span class="color-highlight input-style-1-active">Email</span>
+                    <em>(required)</em>
+                    <input id="EmailID" name="EmailID" class="form-control" type="email" title="Enter Email ID" required>
+                </div>
+                <div class="input-style input-style-2">
+                    <span class="color-highlight input-style-1-active">Search Suburb</span>
+                    <input type="text" id="txtAddress" name="txtAddress" placeholder="Search your Suburb" required />
+                    <input type="hidden" id="hdAreaID" name="PostalCodeID" />
+                </div>
+                <div class="input-style input-style-2 has-icon">
+                    <i class="input-icon fa fa-map-marker color-theme"></i>
+                    <span class="color-highlight input-style-1-active">Address Line 1</span>
+                    <em>(required)</em>
+                    <input id="AddressLine1" name="AddressLine1" class="form-control" type="text" title="Enter Address Line 1" required>
+                </div>
+                <div class="input-style input-style-2 has-icon">
+                    <i class="input-icon fa fa-map-marker color-theme"></i>
+                    <span class="color-highlight input-style-1-active">Address Line 2</span>
+                    <em>(optional)</em>
+                    <input id="AddressLine2" name="AddressLine2" class="form-control" type="text" title="Enter Address Line 2">
+                </div>
+                <a id="btnsave" href="#" class="btn btn-lg font-12 font-700 mb-2 text-uppercase btn-center-xl bg-ba-theme">Update</a>
+            </form>
+        </div>
+    </div>
+</div>

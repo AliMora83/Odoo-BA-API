@@ -1,0 +1,98 @@
+﻿@model BridgingAfrica.ServiceTbl
+
+@{
+    ViewBag.Title = "Create";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+<script>
+    function getSubcategories(cateId) {
+        $('#SubCategoryID').empty().append('<option value="">---------Select Subcategory---------</option>');
+        if (cateId) {
+            $.ajax({
+                url: '/api/HomeApi/GetSubCategories',
+                type: 'GET',
+                data: { cid: cateId },
+                success: function (data) {
+                    if (data.length > 0) {
+                        $.each(data, function (i, item) {
+                            $('#SubCategoryID').append($('<option>', {
+                                value: item.Id,
+                                text: item.SubCategoryName
+                            }));
+                        });
+                    }
+                    else {
+                        $('#SubCategoryID').empty().append('<option value="">---------No Subcategory found---------</option>');
+                    }
+                }
+            });
+        }
+    }
+</script>
+<section class="content-header">
+    <h1>Add Service<small>(Add New Service)</small></h1>
+</section>
+<section class="content">
+    @using (Html.BeginForm("Create", "ManageServices", FormMethod.Post))
+    {
+        <div class="row">
+            <div class="col-md-12">
+                @Html.AntiForgeryToken()
+                <div class="box box-warning">
+                    <div class="box-body">
+                        <div class="form-group">
+                            <label>Category</label>
+                            @Html.DropDownList("CategoryID", null, "---Select Category---", htmlAttributes: new { @class = "form-control", required = "required", onchange= "getSubcategories(this.value)" })
+                        </div>
+
+                        <div class="form-group">
+                            <label>Subcategory</label>
+                            @Html.DropDownList("SubCategoryID", new SelectList(Enumerable.Empty<SelectListItem>()), htmlAttributes: new { @class = "form-control", required = "required" })
+                        </div>
+
+                        <div class="form-group">
+                            <label>Service Name</label>
+                            @Html.EditorFor(model => model.ServiceName, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                        </div>
+
+                        <div class="form-group">
+                            <label>Sort Order</label>
+                            @Html.EditorFor(model => model.ServiceOrder, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                        </div>
+
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea id="Description" name="Description" class="form-control"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Add To Featured</label>
+                            @Html.DropDownList("IsFeatured", new List<SelectListItem>
+                              {
+                                    new SelectListItem { Text = "No", Value = "false"},
+                                    new SelectListItem { Text = "Yes", Value = "true", },
+                              }, htmlAttributes: new { @class = "form-control", required = "required" })
+                        </div>
+
+                        <div class="form-group">
+                            <label>Add To Popular</label>
+                            @Html.DropDownList("IsPopular", new List<SelectListItem>
+                              {
+                           new SelectListItem { Text = "No", Value = "false"},
+                           new SelectListItem { Text = "Yes", Value = "true", },
+                              }, htmlAttributes: new { @class = "form-control", required = "required" })
+                        </div>
+
+                    </div>
+                    <div class="box-footer">
+                        <input type="submit" value="Create" class="btn btn-primary" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div>
+        <a href="/Admin/ManageServices/Index" class="btn btn-dropbox">Back to List</a>
+    </div>
+</section>

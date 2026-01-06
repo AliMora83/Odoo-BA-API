@@ -1,0 +1,411 @@
+﻿@using PagedList.Mvc;
+@using PagedList;
+@model IPagedList<BridgingAfrica.ProviderTbl>
+
+@{
+    ViewBag.Title = "Manage Tradespersons";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+<style>
+    .table-heading {
+        font-weight: bold;
+    }
+</style>
+<section class="content-header">
+    <h1>All Tradespersons<small>(Add, View, Edit, Delete Tradespersons)</small></h1>
+</section>
+<section class="content">
+    <div class="row">
+        <div class="col-md-12 mb5">
+            <a href="/Admin/ManageProvider/Create/" class="btn btn-dropbox">Add New</a>
+        </div>
+        <div class="col-md-12">
+            @if (TempData["FailMessage"] != null)
+            {
+                <div id="fail-alert" class="alert alert-danger text-center">@TempData["FailMessage"]</div>
+            }
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div id="success-alert" class="alert alert-success text-center">@TempData["SuccessMessage"]</div>
+            }
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h3 class="box-title">All Tradespersons (Showing @Model.Count of @Model.TotalItemCount)</h3>
+                </div>
+                <div class="box-body">
+                    <div class="form-group">
+                        @using (Html.BeginForm("Index", "ManageProvider", FormMethod.Get))
+                        {
+                            @Html.DropDownList("ProviderID", null, "Search Provider", htmlAttributes: new { @class = "form-control chosen-select", onchange = "this.form.submit()" })
+                        }
+                    </div>
+                    @if (Model.Count > 0)
+                    {
+                        <div class="table-responsive">
+
+                            <table class="table table-striped table-bordered table-hover">
+                                <tr>
+                                    <th>
+                                        Profile Image
+                                    </th>
+                                    <th>
+                                        Trade Name
+                                    </th>
+                                    <th>
+                                        Owner Name
+                                    </th>
+                                    <th>
+                                        Email ID
+                                    </th>
+                                    <th>
+                                        Contact Number
+                                    </th>
+                                    <th>
+                                        Pricing
+                                    </th>
+                                    <th>
+                                        Address
+                                    </th>
+                                    <th>
+                                        Status
+                                    </th>
+                                    <th>
+                                        Create Date
+                                    </th>
+                                    <th>
+                                        Modified Date
+                                    </th>
+
+                                    <th>
+                                        Action
+                                    </th>
+                                </tr>
+
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            <img src="@item.ProfileImage" class="img-thumbnail" style="height:80px" />
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.ProviderName)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.OwnerName)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.EmailID)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.ContactNo)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.Pricing)
+                                        </td>
+                                        <td>
+                                            @item.AddressLine1<br /> @item.PostalCodesTbl.AreaName, @item.PostalCodesTbl.CityTbl.CityName, @item.PostalCodesTbl.ProvinceTbl.ProvinceName
+                                        </td>
+                                        <td>
+                                            <span style="color:@item.StatusTbl.ColorCode">@item.StatusTbl.StatusName</span>
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.CreateDate)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.ModifiedDate)
+                                        </td>
+                                        <td>
+                                            <a data-toggle="modal" data-target="#modal-approval-@item.Id" class="btn btn-xs btn-bitbucket mb5">
+                                                Approval <i class="fa fa-check-circle"></i> <i class="fa fa-times-circle"></i>
+                                            </a><br />
+                                            <div class="modal fade text-center" id="modal-approval-@item.Id">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                <span aria-hidden="true">&times;</span>
+                                                            </button>
+                                                            <h4 class="modal-title">Tradesperson Approval/Disapproval Confirmation</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <h4>Are you Sure you want to Approve/Disapprove Tradesperson</h4>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <a class="btn btn-danger pull-left" href="@Url.Action("Disapprove", "ManageProvider", new { id = item.Id })">Disapprove</a>
+                                                            <a class="btn btn-primary pull-right" href="@Url.Action("Approve", "ManageProvider", new { id = item.Id })">Approve</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <a class="btn btn-xs btn-warning" href="/admin/ManageProvider/Edit/@item.Id">Edit <i class="fa fa-edit"></i></a>
+                                            <a data-toggle="modal" data-target="#modal-delete-@item.Id" class="btn btn-xs btn-danger">Delete <i class="fa fa-trash-o"></i></a>
+                                            <div class="modal fade text-center" id="modal-delete-@item.Id">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                <span aria-hidden="true">&times;</span>
+                                                            </button>
+                                                            <h4 class="modal-title">Record Delete Confirmation</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <h4>Are you sure you want to delete this record?</h4>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
+                                                            <a class="btn btn-danger pull-right" href="@Url.Action("Delete", "ManageProvider", new { id = item.Id })">Delete</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <br />
+                                            <a data-toggle="modal" data-target="#modal-details-@item.Id" class="btn btn-xs btn-primary">Details <i class="fa fa-eye"></i></a>
+                                            <div class="modal fade" id="modal-details-@item.Id">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                <span aria-hidden="true">&times;</span>
+                                                            </button>
+                                                            <h4 class="modal-title">Tradespersons Details</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <table class="table table-bordered">
+                                                                <tr><td class="table-heading">Provider Type</td><td>@item.ProviderType</td></tr>
+                                                                <tr><td class="table-heading">Free Leads</td><td>@item.FreeLeads</td></tr>
+                                                                <tr><td class="table-heading">Experience</td><td>@item.Experience</td></tr>
+                                                                <tr><td class="table-heading">Team</td><td>@item.TeamCount</td></tr>
+                                                                <tr><td class="table-heading">Website</td><td>@item.Website</td></tr>
+                                                                <tr><td class="table-heading">Rating</td><td>@item.AverageRating</td></tr>
+                                                                <tr><td class="table-heading">Verified?</td><td>@item.IsVerified</td></tr>
+                                                                <tr><td class="table-heading">Sponsored?</td><td>@item.IsSponsored</td></tr>
+                                                                <tr><td class="table-heading">Available?</td><td>@item.IsAvailable</td></tr>
+                                                                <tr>
+                                                                    <td class="table-heading">Rating</td>
+                                                                    <td>
+                                                                        <div class="product-reviews-summary">
+                                                                            <div class="rating-summary">
+                                                                                <h4 class="rating-result mb-0">
+                                                                                    <span style="width:@item.AverageRating%"></span>
+                                                                                </h4>
+                                                                            </div>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="table-heading">Trade Test Certicate</td>
+                                                                    <td>
+                                                                        @if (string.IsNullOrEmpty(item.TradeTestCerticate))
+                                                                        {
+                                                                            <span>Certificate not uploaded</span>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <a href="@item.TradeTestCerticate" class="btn btn-xs btn-facebook" target="_blank">View Certificate</a>
+                                                                        }
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="table-heading">Police Clearance</td>
+                                                                    <td>
+                                                                        @if (string.IsNullOrEmpty(item.PoliceClearance))
+                                                                        {
+                                                                            <span>Certificate not uploaded</span>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <a href="@item.PoliceClearance" class="btn btn-xs btn-facebook" target="_blank">View Certificate</a>
+                                                                        }
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="table-heading">Reference Doc</td>
+                                                                    <td>
+                                                                        @if (string.IsNullOrEmpty(item.ReferenceDoc))
+                                                                        {
+                                                                            <span>Certificate not uploaded</span>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <a href="@item.ReferenceDoc" class="btn btn-xs btn-facebook" target="_blank">View Certificate</a>
+                                                                        }
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                            <hr />
+                                                            <h4>Provider Bio:</h4>
+                                                            <p>@item.ShortBio</p>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <a data-toggle="modal" data-target="#modal-services-@item.Id" class="btn btn-xs btn-facebook">
+                                                Services <i class="fa fa-edit"></i>
+                                            </a>
+                                            <div class="modal fade" id="modal-services-@item.Id">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                <span aria-hidden="true">&times;</span>
+                                                            </button>
+                                                            <h4 class="modal-title">Tradespersons Services</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="row">
+                                                                <div class="col-md-12">
+                                                                    @using (Html.BeginForm("AddService", "ManageProvider", FormMethod.Post))
+                                                                    {
+                                                                        <input type="hidden" name="ProviderID" value="@item.Id" />
+                                                                        <div class="form-group">
+                                                                            <label>Add New Service</label>
+                                                                            @Html.DropDownList("ServiceID", null, "---Select Service---", htmlAttributes: new { @class = "form-control chosen-select", required = "required" })
+                                                                        </div>
+                                                                        <div class="form-group">
+                                                                            <input type="submit" value="Add" class="btn btn-facebook" />
+                                                                        </div>
+                                                                    }
+                                                                    <div class="table-responsive">
+                                                                        @if (item.ProviderServicesTbls.Count > 0)
+                                                                        {
+                                                                            <table class="table table-bordered">
+                                                                                <tr>
+                                                                                    <th>Category</th>
+                                                                                    <th>Service Name</th>
+                                                                                    <th>Action</th>
+                                                                                </tr>
+                                                                                @foreach (var service in item.ProviderServicesTbls.Where(s => s.IsActive == true && s.ServiceTbl.IsActive == true))
+                                                                                {
+                                                                                    <tr>
+                                                                                        <td>
+                                                                                            @service.ServiceTbl.CategoryTbl.CategoryName
+                                                                                            <i class="fa fa-chevron-circle-right"></i> @service.ServiceTbl.SubCategoryTbl.SubCategoryName
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            @service.ServiceTbl.ServiceName
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            <a class="btn btn-xs btn-danger pull-right" href="@Url.Action("DeleteService", "ManageProvider", new { id = service.Id })">Delete</a>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                }
+                                                                            </table>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <h4>No Records Found</h4>
+                                                                        }
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <a data-toggle="modal" data-target="#modal-Accreditations-@item.Id" class="btn btn-xs btn-bitbucket">
+                                                Accreditations <i class="fa fa-edit"></i>
+                                            </a>
+                                            <div class="modal fade" id="modal-Accreditations-@item.Id">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                <span aria-hidden="true">&times;</span>
+                                                            </button>
+                                                            <h4 class="modal-title">Tradespersons Accreditations</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="row">
+                                                                <div class="col-md-12">
+                                                                    @using (Html.BeginForm("AddAccreditations", "ManageProvider", FormMethod.Post))
+                                                                    {
+                                                                        <input type="hidden" name="ProviderID" value="@item.Id" />
+                                                                        <div class="form-group">
+                                                                            <label>Add New Accreditations</label>
+                                                                            @Html.DropDownList("Acid", null, "---Select Accreditations---", htmlAttributes: new { @class = "form-control chosen-select", required = "required" })
+                                                                        </div>
+                                                                        <div class="form-group">
+                                                                            <input type="submit" value="Add" class="btn btn-facebook" />
+                                                                        </div>
+                                                                    }
+                                                                    <div class="table-responsive">
+                                                                        @if (item.ProviderAccreditationsTbls.Count > 0)
+                                                                        {
+                                                                            <table class="table table-bordered">
+                                                                                <tr>
+                                                                                    <th>Logo</th>
+                                                                                    <th>Accreditation Name</th>
+                                                                                    <th>Status</th>
+                                                                                    <th>Action</th>
+                                                                                </tr>
+                                                                                @foreach (var Accreditations in item.ProviderAccreditationsTbls.Where(s => s.IsActive == true && s.AccreditationTbl.IsActive == true))
+                                                                                {
+                                                                                    <tr>
+                                                                                        <td>
+                                                                                            <img src="@Accreditations.AccreditationTbl.Logo" class="thumbnail" style="height:50px;margin-bottom:0px" />
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            @Accreditations.AccreditationTbl.AccreditationName
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            @Accreditations.StatusTbl.StatusName
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            <a class="btn btn-xs btn-danger" href="@Url.Action("DeleteAccreditation", "ManageProvider", new { id = item.Id })">Delete</a>
+                                                                                            @if (Accreditations.StatusID == 1)
+                                                                                            {
+                                                                                                <a class="btn btn-xs btn-success" href="@Url.Action("ApproveAccreditation", "ManageProvider", new { id = Accreditations.Id })">Approve</a>
+
+                                                                                                <a class="btn btn-xs btn-danger" href="@Url.Action("DisapproveAccreditation", "ManageProvider", new { id = Accreditations.Id })">Disapprove</a>
+                                                                                            }
+                                                                                            else if (Accreditations.StatusID == 2)
+                                                                                            {
+                                                                                                <a class="btn btn-xs btn-danger" href="@Url.Action("DisapproveAccreditation", "ManageProvider", new { id = Accreditations.Id })">Disapprove</a>
+                                                                                            }
+                                                                                            else if (Accreditations.StatusID == 3)
+                                                                                            {
+                                                                                                <a class="btn btn-xs btn-success" href="@Url.Action("ApproveAccreditation", "ManageProvider", new { id = Accreditations.Id })">Approve</a>
+                                                                                            }
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                }
+                                                                            </table>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <h4>No Records Found</h4>
+                                                                        }
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </table>
+                            @Html.PagedListPager(Model, Page => Url.Action("Index", "ManageProvider", new { Page }))
+                        </div>
+                    }
+                    else
+                    {
+                        <h4 class="box-title">Record Not Found</h4>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

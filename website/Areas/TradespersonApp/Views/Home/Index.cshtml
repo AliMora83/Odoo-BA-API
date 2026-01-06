@@ -1,0 +1,341 @@
+﻿
+@{
+    ViewBag.Title = "Home";
+    Layout = "~/Areas/TradespersonApp/Views/Shared/_ProviderLayout.cshtml";
+
+    BridgingAfricaDBEntities db = new BridgingAfricaDBEntities();
+    int userId = 0;
+    if (Request.Cookies["P_UserID"] != null)
+    {
+        HttpCookie reqCookies = Request.Cookies["P_UserID"];
+        userId = int.Parse(reqCookies.Value);
+    }
+    var totalLeads = db.ProviderEnquiryTbls.Where(p => p.IsActive == true && p.ProviderID == userId).Count();
+
+    var pendingQuotations = db.ProviderEnquiryTbls.Where(p => p.IsActive == true && p.ProviderID == userId && p.StatusID == 1).Select(p => new { p.Id, p.CategoryTbl.CategoryName, p.SubCategoryTbl.SubCategoryName, p.ServiceTbl.ServiceName, p.CustomerTbl.FirstName, p.CustomerTbl.MobileNo, p.IsPaid }).OrderByDescending(p => p.Id).ToList();
+
+    //var totaljobs = db.ProviderJobsTbls.Where(c => c.IsActive == true && c.ProviderEnquiryTbl.ProviderID == userId).Count();
+
+    //var pendingJobs = db.ProviderJobsTbls.Where(p => p.IsActive == true && p.ProviderEnquiryTbl.ProviderID == userId && p.StatusID == 1).Select(p => new { p.Id, p.ProviderEnquiryTbl.CategoryTbl.CategoryName, p.ProviderEnquiryTbl.SubCategoryTbl.SubCategoryName, p.ProviderEnquiryTbl.ServiceTbl.ServiceName, p.ProviderEnquiryTbl.CustomerTbl.FirstName, p.ProviderEnquiryTbl.CustomerTbl.MobileNo }).OrderByDescending(p => p.Id).ToList();
+
+    var providerDetails = db.ProviderTbls.Where(c => c.IsActive == true && c.Id == userId).Select(s => new { s.Id, s.ProviderName, s.Pricing, s.ShortBio, s.TradeTestCerticate, s.PoliceClearance, s.ReferenceDoc, s.ProfileImage, s.BannerImage, s.StatusID, s.IsVerified, ServicesCount = s.ProviderServicesTbls.Count(ss => ss.IsActive) }).FirstOrDefault();
+
+}
+<script>
+    var UserID = localStorage.getItem("P_UserID");
+    function getProviderDetails() {
+        $.ajax({
+            url: '/api/ProviderApi/GetProviderDetails?pid=' + UserID,
+            type: "get",
+            dataType: "JSON",
+            beforeSend: function () {
+                $("body").mLoading();
+            },
+            success: function (json) {
+                $("body").mLoading('hide');
+                $("#switch-b").attr("data-pro-id", json.Id);
+                $("#switch-b").val(json.IsAvailable);
+                if (json.IsAvailable === true) {
+                    $("#switch-b").prop("checked", true);
+                } else {
+                    $("#switch-b").prop("checked", false);
+                }
+
+            },
+        });
+    }
+    $(document).ready(function () {
+        getProviderDetails();
+    });
+    function AvailabilityToggle() {
+        var checkbox = $("#switch-b");
+        var isChecked = $(checkbox).is(':checked'); // Get checkbox state
+        var providerId = $(checkbox).data('pro-id'); // Get student ID
+        if (isChecked == true) {
+            isChecked = false;
+        }
+        else {
+            isChecked = true;
+        }
+        $.ajax({
+            url: '/api/ProviderApi/ToggleAvailability?providerId=' + providerId + '&isAvailable=' + isChecked,
+            type: 'POST',
+            contentType: 'application/json',
+            success: function (response) {
+                if (response.Status == "1") {
+                    $('#SuccessToast').html(response.Message);
+                    $('#SuccessToast').toast('show');
+
+                } else {
+                    $('#ErrorToast').html(response.Message);
+                    $('#ErrorToast').toast('show');
+                }
+            },
+            error: function () {
+                alert('An error occurred while updating notification status.');
+            }
+        });
+    }
+</script>
+<div class="page-content">
+    <div class="page-title page-title-large mb-0">
+        <div class="row">
+            <div class="col-9">
+                <h2 class="greeting-text" data-username="@providerDetails.ProviderName"></h2>
+            </div>
+            <div class="col-3">
+                <a href="/TradespersonApp/Home/MyProfile" class="bg-fade-gray1-dark shadow-xl">
+                    <img style="height: 55px;width: 55px;border-radius: 50px;" src="@providerDetails.ProfileImage" />
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="card header-card shape-rounded" data-card-height="200">
+        <div class="card-overlay bg-ba-theme opacity-95"></div>
+        <div class="card-overlay dark-mode-tint"></div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(providerDetails.BannerImage))
+    {
+        <div class="card card-style" data-card-height="150">
+            <img src="@providerDetails.BannerImage" />
+        </div>
+    }
+    else
+    {
+        <div class="card card-style p-2" data-card-height="150">
+            <a href="/TradespersonApp/Home/MyProfile" class="btn btn-full bg-ba-theme btn-m mt-5 text-uppercase font-900 rounded-s shadow-xl">No Banner, Upload?</a>
+        </div>
+    }
+
+    <div class="card card-style mb-5">
+        <div class="content mt-0 mb-2">
+            <div class="list-group list-custom-large">
+                <a data-trigger-switch="switch-b" href="#" style="border-bottom:none!important">
+                    <i class="fa font-14 fa-check bg-ba-theme color-white rounded-sm"></i>
+                    <span style="margin-top:-5px;">Are you available?</span>
+                    <strong style="margin-top:18px;">Are you available to receive leads?</strong>
+                    <div class="custom-control scale-switch ios-switch">
+                        <input type="checkbox" class="ios-input" id="switch-b" />
+                        <label class="custom-control-label" for="switch-b" onclick="AvailabilityToggle()"></label>
+                    </div>
+                    <i class="fa fa-chevron-right opacity-30"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="content mt-n2">
+        <div class="row mb-0">
+            <a href="/TradespersonApp/Home/MyServices" class="col-6">
+                <div class="card card-style text-center py-3 mx-0 mb-0">
+                    <h5>@pendingQuotations.Count</h5>
+                    <p class="font-13 font-500 mb-n1 mt-2 color-theme">Pending Requests</p>
+                </div>
+            </a>
+            <a href="/TradespersonApp/Home/MyServices" class="col-6">
+                <div class="card card-style text-center py-3 mx-0 mb-0">
+                    <h5>@totalLeads</h5>
+                    <p class="font-13 font-500 mb-n1 mt-2 color-theme">Total Requests</p>
+                </div>
+            </a>
+            @*<a href="/TradespersonApp/Home/MyServices" class="col-4">
+                <div class="card card-style text-center py-3 mx-0 mb-0">
+                    <h5>@totaljobs</h5>
+                    <p class="font-13 font-500 mb-n1 mt-2 color-theme">Total Jobs</p>
+                </div>
+            </a>*@
+        </div>
+    </div>
+    <div class="card card-style mt-4">
+        <div class="content">
+            @if (pendingQuotations.Count > 0)
+            {
+                <h3 class="float-left font-16">Pending Requests</h3>
+                <a class="float-right font-12 color-highlight mt-n1" href="/TradespersonApp/Home/MyServices">View All</a>
+                <div class="clearfix"></div>
+                <p>
+                    Service requested from customer, yet not completed.
+                </p>
+                <div class="divider mt-3 mb-3"></div>
+                foreach (var item in pendingQuotations)
+                {
+                    if (item.IsPaid == true)
+                    {
+                        <a href="/TradespersonApp/Home/MyServiceDetails?serviceID=@item.Id" class="d-flex">
+                            <div class="align-self-center pl-0">
+                                <span class="color-theme font-12">@item.SubCategoryName</span>
+                                <h5 class="font-600 font-14 mb-n2">@item.ServiceName</h5>
+                            </div>
+                            <div class="align-self-center ml-auto">
+                                <h5 class="font-600 font-14 text-right"><i class="fa fa-user"></i> @item.FirstName</h5>
+                            </div>
+                        </a>
+                    }
+                    else
+                    {
+                        <a href="/TradespersonApp/Home/PaymentDetails?qid=@item.Id" class="d-flex">
+                            <div class="align-self-center pl-0">
+                                <span class="color-theme font-12">@item.SubCategoryName</span>
+                                <h5 class="font-600 font-14 mb-n2">@item.ServiceName</h5>
+                            </div>
+                            <div class="align-self-center ml-auto">
+                                <h5 class="font-600 font-14 text-right"><i class="fa fa-user"></i> @item.FirstName</h5>
+                            </div>
+                        </a>
+                    }
+                    <div class="divider mt-3 mb-3"></div>
+                }
+            }
+            else
+            {
+                <h3 class="float-left font-16">No Pending Requests</h3>
+            }
+        </div>
+    </div>
+
+    @*<div class="card card-style mt-4">
+            <div class="content">
+                @if (pendingJobs.Count > 0)
+                {
+                    <h3 class="float-left font-16">Pending Jobs</h3>
+                    <a class="float-right font-12 color-highlight mt-n1" href="/TradespersonApp/Home/MyJobs">View All</a>
+                    <div class="clearfix"></div>
+                    <p>
+                        Jobs you converted from quotations from customer, yet not completed.
+                    </p>
+                    <div class="divider mt-3 mb-3"></div>
+                    foreach (var item in pendingJobs)
+                    {
+                        <a href="/TradespersonApp/Home/MyJobDetails?jobID=@item.Id" class="d-flex">
+                            <div class="align-self-center pl-0">
+                                <span class="color-theme font-12">@item.SubCategoryName</span>
+                                <h5 class="font-600 font-14 mb-n2">@item.ServiceName</h5>
+                            </div>
+                            <div class="align-self-center ml-auto">
+                                <h5 class="font-600 font-14 text-right"><i class="fa fa-user"></i> @item.FirstName</h5>
+                            </div>
+                        </a>
+                        <div class="divider mt-3 mb-3"></div>
+                    }
+                }
+                else
+                {
+                    <h3 class="float-left font-16">No Pending Jobs</h3>
+                }
+            </div>
+        </div>*@
+
+    @if (string.IsNullOrEmpty(providerDetails.ShortBio) || string.IsNullOrEmpty(providerDetails.TradeTestCerticate)|| string.IsNullOrEmpty(providerDetails.PoliceClearance)|| string.IsNullOrEmpty(providerDetails.ReferenceDoc) || providerDetails.IsVerified == false || providerDetails.StatusID == 1 || providerDetails.ServicesCount<=0)
+    {
+        <div class="card card-style">
+            <div class="content">
+                <h3 class="font-16">Pending Actions</h3>
+                <p class="mb-4">Complete these action to take leads.</p>
+                @*@if (string.IsNullOrEmpty(providerDetails.Pricing))
+        {
+            <a href="/TradespersonApp/Home/MyProfile" class="d-flex">
+                <div class="align-self-center">
+                    <span class="icon icon-m bg-ba-theme rounded-m shadow-xl"><i class="fa fa-dollar-sign"></i></span>
+                </div>
+                <div class="align-self-center pl-3">
+                    <h5 class="font-600 font-14 mb-0 mt-n1">Set Pricing</h5>
+                    <p class="color-theme opacity-70 font-12 line-height-xs">Your pricing details not updated yet!</p>
+                </div>
+            </a>
+            <div class="divider mt-3 mb-3"></div>
+        }*@
+                @if (providerDetails.ServicesCount <= 0)
+                {
+                    <a href="/TradespersonApp/Home/ManageServices" class="d-flex">
+                        <div class="align-self-center">
+                            <span class="icon icon-m bg-ba-theme rounded-m shadow-xl"><i class="fa fa-cogs"></i></span>
+                        </div>
+                        <div class="align-self-center pl-3">
+                            <h5 class="font-600 font-14 mb-0 mt-n1">Your Services</h5>
+                            <p class="color-theme opacity-70 font-12 line-height-xs">Your services not updated yet!</p>
+                        </div>
+                    </a>
+                    <div class="divider mt-3 mb-3"></div>
+                }
+                @if (string.IsNullOrEmpty(providerDetails.ShortBio))
+                {
+                    <a href="/TradespersonApp/Home/MyProfile" class="d-flex">
+                        <div class="align-self-center">
+                            <span class="icon icon-m bg-ba-theme rounded-m shadow-xl"><i class="fa fa-user"></i></span>
+                        </div>
+                        <div class="align-self-center pl-3">
+                            <h5 class="font-600 font-14 mb-0 mt-n1">Your Short Bio</h5>
+                            <p class="color-theme opacity-70 font-12 line-height-xs">Your short bio in profile not updated yet!</p>
+                        </div>
+                    </a>
+                    <div class="divider mt-3 mb-3"></div>
+                }
+                @if (string.IsNullOrEmpty(providerDetails.TradeTestCerticate))
+                {
+                    <a href="/TradespersonApp/Home/MyProfile" class="d-flex">
+                        <div class="align-self-center">
+                            <span class="icon icon-m bg-ba-theme rounded-m shadow-xl"><i class="fa fa-file"></i></span>
+                        </div>
+                        <div class="align-self-center pl-3">
+                            <h5 class="font-600 font-14 mb-0 mt-n1">Your Trade Certicate</h5>
+                            <p class="color-theme opacity-70 font-12 line-height-xs">Your Trade test certicate is not uploaded yet!</p>
+                        </div>
+                    </a>
+                    <div class="divider mt-3 mb-3"></div>
+                }
+                @if (string.IsNullOrEmpty(providerDetails.PoliceClearance))
+                {
+                    <a href="/TradespersonApp/Home/MyProfile" class="d-flex">
+                        <div class="align-self-center">
+                            <span class="icon icon-m bg-ba-theme rounded-m shadow-xl"><i class="fa fa-file-invoice"></i></span>
+                        </div>
+                        <div class="align-self-center pl-3">
+                            <h5 class="font-600 font-14 mb-0 mt-n1">Your Police Clearance</h5>
+                            <p class="color-theme opacity-70 font-12 line-height-xs">Your police clearance certicate is not uploaded yet!</p>
+                        </div>
+                    </a>
+                    <div class="divider mt-3 mb-3"></div>
+                }
+                @if (string.IsNullOrEmpty(providerDetails.ReferenceDoc))
+                {
+                    <a href="/TradespersonApp/Home/MyProfile" class="d-flex">
+                        <div class="align-self-center">
+                            <span class="icon icon-m bg-ba-theme rounded-m shadow-xl"><i class="fa fa-file-invoice"></i></span>
+                        </div>
+                        <div class="align-self-center pl-3">
+                            <h5 class="font-600 font-14 mb-0 mt-n1">Your Reference letter</h5>
+                            <p class="color-theme opacity-70 font-12 line-height-xs">Your Reference letter from a rated company is not uploaded yet!</p>
+                        </div>
+                    </a>
+                    <div class="divider mt-3 mb-3"></div>
+                }
+                @if (providerDetails.IsVerified == false)
+                {
+                    <div class="d-flex">
+                        <div class="align-self-center">
+                            <span class="icon icon-m bg-ba-theme rounded-m shadow-xl"><i class="fa fa-exclamation"></i></span>
+                        </div>
+                        <div class="align-self-center pl-3">
+                            <h5 class="font-600 font-14 mb-0 mt-n1">Verified badge</h5>
+                            <p class="color-theme opacity-70 font-12 line-height-xs">Your account not have verified badge from bridging africa!</p>
+                        </div>
+                    </div>
+                    <div class="divider mt-3 mb-3"></div>
+                }
+                @if (providerDetails.StatusID == 1)
+                {
+                    <div class="d-flex">
+                        <div class="align-self-center">
+                            <span class="icon icon-m bg-ba-theme rounded-m shadow-xl"><i class="fa fa-exclamation"></i></span>
+                        </div>
+                        <div class="align-self-center pl-3">
+                            <h5 class="font-600 font-14 mb-0 mt-n1">Account verification</h5>
+                            <p class="color-theme opacity-70 font-12 line-height-xs">Your account not verified by bridging africa!</p>
+                        </div>
+                    </div>
+                    <div class="divider mt-3 mb-3"></div>
+                }
+            </div>
+        </div>
+    }
+</div>

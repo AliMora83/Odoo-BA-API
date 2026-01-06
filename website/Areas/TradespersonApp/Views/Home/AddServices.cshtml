@@ -1,0 +1,115 @@
+﻿
+@{
+    ViewBag.Title = "AddServices";
+    Layout = "~/Areas/TradespersonApp/Views/Shared/_ProviderLayout.cshtml";
+}
+
+<script>
+    var UserID = localStorage.getItem("P_UserID");   
+    function getSubcategories(cateId) {
+        $('#SubCategoryID').empty().append('<option value="">Select Subcategory</option>');
+        if (cateId) {
+            $.ajax({
+                url: '/api/HomeApi/GetSubCategories',
+                type: 'GET',
+                data: { cid: cateId },
+                success: function (data) {
+                    if (data.length > 0) {
+                        $.each(data, function (i, item) {
+                            $('#SubCategoryID').append($('<option>', {
+                                value: item.Id,
+                                text: item.SubCategoryName
+                            }));
+                        });
+                    }
+                    else {
+                        $('#SubCategoryID').empty().append('<option value="">No Subcategory found</option>');
+                    }
+                }
+            });
+        }
+    }
+    function getServices() {
+        $('#ServiceID').empty().append('<option value="">Select Service</option>');
+        var CategoryID = $('#CategoryID').val();
+        var SubCategoryID = $('#SubCategoryID').val();
+        $.ajax({
+            url: '/api/HomeApi/GetServices?cid=' + CategoryID + '&scid=' + SubCategoryID,
+            type: 'GET',
+            success: function (data) {
+                if (data.length > 0) {
+                    $.each(data, function (i, item) {
+                        $('#ServiceID').append($('<option>', {
+                            value: item.Id,
+                            text: item.ServiceName
+                        }));
+                    });
+                }
+                else {
+                    $('#ServiceID').empty().append('<option value="">No Services found</option>');
+                }
+            }
+        });
+    }
+    function AddService() {
+        var serviceid = $('#ServiceID').val();
+        if (serviceid != null && serviceid != "") {
+            $.ajax({
+                url: "/api/ProviderApi/AddProviderService?sid=" + serviceid + "&pid=" + UserID,
+                type: 'GET',
+                contentType: 'application/json',
+                beforeSend: function () {
+                    $("body").mLoading();
+                },
+                success: function (data) {
+                    $("body").mLoading('hide');
+                    if (data.Status == "Success") {
+                        document.getElementById("SuccessHeader").innerHTML = "Success";
+                        document.getElementById("SuccessDetail").innerHTML = data.Message;
+                        $('#SuccessMessage').showMenu();                        
+                    }
+                    else {
+                        document.getElementById("ErrorHeader").innerHTML = "Alert";
+                        document.getElementById("ErrorDetails").innerHTML = data.Message;
+                        $('#ErrorMessage').showMenu();
+                    }
+                },
+                error: function (data) {
+                    alert(data.Message);
+                    $("body").mLoading('hide');
+                }
+            });
+        }
+        else {
+            alert('Selected service not available.');
+        }
+    }
+
+</script>
+
+<div class="page-content">
+    <div class="page-title page-title-small">
+        <h2><a href="/TradespersonApp/Home/ManageServices"><i class="fa fa-arrow-left"></i></a>Add New Service</h2>
+    </div>
+    <div class="card header-card shape-rounded" data-card-height="150">
+        <div class="card-overlay bg-ba-theme opacity-95"></div>
+        <div class="card-overlay dark-mode-tint"></div>
+        <div class="card-bg"></div>
+    </div>
+    <div class="card card-style mb-1 p-2">
+        <h4 class="m-3">Add Service</h4>     
+        <div class="input-style input-style-2">
+            <span class="color-highlight input-style-1-active">Category</span>
+            @Html.DropDownList("CategoryID", null, "---Select Category---", htmlAttributes: new { required = "required", onchange = "getSubcategories(this.value)" })
+        </div>
+        <div class="input-style input-style-2">
+            <span class="color-highlight input-style-1-active">Subcategory</span>
+            @Html.DropDownList("SubCategoryID", new SelectList(Enumerable.Empty<SelectListItem>()), htmlAttributes: new { required = "required", onchange = "getServices()" })
+        </div>
+        <div class="input-style input-style-2">
+            <span class="color-highlight input-style-1-active">Select Service</span>
+            @Html.DropDownList("ServiceID", new SelectList(Enumerable.Empty<SelectListItem>()), htmlAttributes: new { required = "required" })
+        </div>
+        <a href="#" onclick="AddService()" class="btn btn-m btn-full button-s shadow-l rounded-s text-uppercase font-900 bg-ba-theme">Add</a>
+    </div>
+</div>

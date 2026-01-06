@@ -1,0 +1,113 @@
+﻿@model BridgingAfrica.CustomerReviewsTbl
+@{
+    ViewBag.Title = "Tradesperson Review";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<main class="main-wrapper">
+    <!-- Start Breadcrumb Area  -->
+    <div class="axil-breadcrumb-area">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 col-md-8">
+                    <div class="inner">
+                        <ul class="axil-breadcrumb">
+                            <li class="axil-breadcrumb-item"><a href="/">Home</a></li>
+                            <li class="separator"></li>
+                            <li class="axil-breadcrumb-item active" aria-current="page">Customer Account</li>
+                        </ul>
+                        <h1 class="title">Tradesperson Review</h1>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-4">
+                    <div class="inner">
+                        <div class="bradcrumb-thumb">
+                            <img src="/assets/images/logo/logoheader.png" alt="Image" style="height:140px;" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="axil-dashboard-area mb--80">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="axil-dashboard-area mt--30">
+                    <div class="container">
+                        <div class="axil-dashboard-warp">
+                            <div class="axil-dashboard-author">
+                                <div class="media">
+                                    <div class="media-body">
+                                        <h5 class="title mb-0">Hello @Session["CustomerName"]</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                @Html.Action("_AccountDetail", "CustomerAccount")
+                                <div class="col-xl-9 col-md-8">
+                                    @if (TempData["FailMessage"] != null)
+                                    {
+                                        <div id="fail-alert" class="alert alert-danger text-center">@TempData["FailMessage"]</div>
+                                    }
+                                    @if (TempData["SuccessMessage"] != null)
+                                    {
+                                        <div id="success-alert" class="alert alert-success text-center">@TempData["SuccessMessage"]</div>
+                                    }
+                                    <div class="axil-dashboard-overview">
+                                        <section class="content">
+                                            <h6 class="mb--0">Request Review</h6>
+                                            <p>Write about your experience with request and tradesperson behavior etc.</p>
+                                            @if (Model != null)
+                                            {
+                                                <div class="row row--10">
+                                                    <div class="col-lg-12">
+                                                        <div class="form-group">
+                                                            <label>Rating</label>
+                                                            @Html.DropDownList("Rating", null, "Select Rating", htmlAttributes: new { @disabled = "disabled", required = "required", title = "Select Rating" })
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label>Review</label>
+                                                            @Html.TextAreaFor(model => model.Review, new { required = "required", readOnly = "readOnly" })
+                                                        </div>
+                                                        <h5 class="text-center mt--10">You already reviewed this request</h5>
+                                                    </div>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <form method="post" action="/CustomerAccount/review">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" id="QID" name="QID" value="@Request.QueryString["qid"]" />
+                                                    <input type="hidden" id="CustID" name="CustID" value="@Request.QueryString["custid"]" />
+                                                    <input type="hidden" id="ProviderID" name="ProviderID" value="@Request.QueryString["providerID"]" />
+                                                    <div class="row row--10">
+                                                        <div class="col-lg-12">
+                                                            <div class="form-group">
+                                                                <label>Rating</label>
+                                                                @Html.DropDownList("Rating", null, "Select Rating", htmlAttributes: new { required = "required", title = "Select Rating" })
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label>Review</label>
+                                                                @Html.TextAreaFor(model => model.Review, new { required = "required" })
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-12 mt--20">
+                                                            <div class="form-group mb--0">
+                                                                <button type="submit" class="axil-btn btn-bg-primary">Submit</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            }
+                                        </section>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+

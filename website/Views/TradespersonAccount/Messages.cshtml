@@ -1,0 +1,110 @@
+﻿
+@{
+    ViewBag.Title = "Messages";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    BridgingAfricaDBEntities db = new BridgingAfricaDBEntities();
+
+    int providerID = int.Parse(Session["P_UserID"].ToString());
+    var result = db.ProviderNotificationTbls.Where(a => a.Isactive && a.ProviderID == providerID).Select(c => new { c.Id, c.Message, c.WebUrl, c.Status, c.CreateDate }).OrderByDescending(c => c.Id).ToList();
+}
+
+<script>
+    function readNotification(nid) {
+        $.ajax({
+            url: '/api/ProviderApi/ReadNotification?nid=' + nid,
+            type: "Get",
+            dataType: "JSON",
+            success: function (response) {
+                console.log(response);
+            },
+        });
+    }
+</script>
+<main class="main-wrapper">
+    <!-- Start Breadcrumb Area  -->
+    <div class="axil-breadcrumb-area">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 col-md-8">
+                    <div class="inner">
+                        <ul class="axil-breadcrumb">
+                            <li class="axil-breadcrumb-item"><a href="/">Home</a></li>
+                            <li class="separator"></li>
+                            <li class="axil-breadcrumb-item active" aria-current="page">Messages</li>
+                        </ul>
+                        <h1 class="title">Messages</h1>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-4">
+                    <div class="inner">
+                        <div class="bradcrumb-thumb">
+                            <img src="/assets/images/logo/logoheader.png" alt="Image" style="height:140px;" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="axil-dashboard-area mb--80">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="axil-dashboard-area mt--30">
+                    <div class="container">
+                        <div class="axil-dashboard-warp">
+                            <div class="axil-dashboard-author">
+                                <div class="media">
+                                    <div class="media-body">
+                                        <h5 class="title mb-0">Hello @Session["ProviderName"]</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                @Html.Action("_AccountDetail", "TradespersonAccount")
+                                <div class="col-xl-9 col-md-8">
+                                    @if (result.Count > 0)
+                                    {
+                                        <div class="axil-dashboard-order">
+                                            <div class="table-responsive" style="border: 1px solid #C0C0C0; border-radius: 5px;">
+                                                <table class="table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th scope="col">Message</th>
+                                                            <th scope="col">Date</th>
+                                                        </tr>
+                                                    </thead>
+                                                    @foreach (var item in result)
+                                                    {
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>
+                                                                    @if (item.Status == false)
+                                                                    {
+                                                                        <a href="@item.WebUrl" onclick="readNotification(@item.Id)" style="color:#3a8649">@item.Message</a>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <a href="@item.WebUrl" onclick="readNotification(@item.Id)" style="color: #606060;">@item.Message</a>
+                                                                    }
+                                                                </td>
+                                                                <td>@item.CreateDate.ToString("dd-MMM-yyyy hh:mm:ss tt")</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    }
+                                                </table>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <h4>No Record Found</h4>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+

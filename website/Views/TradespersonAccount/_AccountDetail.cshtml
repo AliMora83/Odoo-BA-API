@@ -1,0 +1,35 @@
+﻿@{ 
+    BridgingAfricaDBEntities db = new BridgingAfricaDBEntities();
+    int providerID = 0;
+    var unread = 0;
+    if (Session["P_UserID"] != null)
+    {
+        providerID = int.Parse(Session["P_UserID"].ToString());
+        unread = db.ProviderNotificationTbls.Count(p => p.ProviderID == providerID && p.Status == false && p.Isactive == true);
+    }
+}
+
+<div class="col-xl-3 col-md-4">
+    <aside class="axil-dashboard-aside">
+        <nav class="axil-dashboard-nav">
+            <div class="nav nav-tabs" role="tablist">
+                <a class="@(ViewBag.CurrentUser=="Dashboard"?"nav-item nav-link active":"nav-item nav-link")" href="/TradespersonAccount/"><i class="fas fa-th-large"></i>Dashboard</a>
+                <a class="@(ViewBag.CurrentUser=="Profile"?"nav-item nav-link active":"nav-item nav-link")" href="/TradespersonAccount/TradesPersonProfile"><i class="fas fa-user"></i>My Profile</a>
+                <a class="@(ViewBag.CurrentUser=="Quotations"?"nav-item nav-link active":"nav-item nav-link")" href="/TradespersonAccount/MyQuotations"><i class="fas fa-list"></i>Requests</a>
+                <a class="@(ViewBag.CurrentUser=="CancelledQuotations"?"nav-item nav-link active":"nav-item nav-link")" href="/TradespersonAccount/CancelledQuotations"><i class="fas fa-list"></i>Cancelled Requests</a>
+                <a class="@(ViewBag.CurrentUser=="Messages"?"nav-item nav-link active":"nav-item nav-link")" href="/TradespersonAccount/Messages">
+                    <i class="fas fa-list"></i>Messages @if (unread > 0)
+                    {<span class="sp-count">@unread</span>}
+                </a>
+                @*<a class="@(ViewBag.CurrentUser=="MyJobs"?"nav-item nav-link active":"nav-item nav-link")" href="/TradespersonAccount/MyJobs"><i class="fas fa-list"></i>Jobs</a>*@
+                @*<a class="@(ViewBag.CurrentUser=="Invoices"?"nav-item nav-link active":"nav-item nav-link")" href="/TradespersonAccount/MyJobsInvoices"><i class="fas fa-file-invoice"></i>Job Invoices</a>*@
+                <a class="@(ViewBag.CurrentUser=="ManageServices"?"nav-item nav-link active":"nav-item nav-link")" href="/TradespersonAccount/ManageServices"><i class="fas fa-list"></i>Manage Services</a>
+                <a class="@(ViewBag.CurrentUser=="ManageAccreditation"?"nav-item nav-link active":"nav-item nav-link")" href="/TradespersonAccount/ManageAccreditation"><i class="fas fa-list"></i>Accreditation Request</a>
+                <a class="@(ViewBag.CurrentUser=="UploadPhotos"?"nav-item nav-link active":"nav-item nav-link")" href="/TradespersonAccount/UploadPhotos"><i class="fas fa-image"></i>Upload Photos</a>
+                <a class="@(ViewBag.CurrentUser=="CustomerReviews"?"nav-item nav-link active":"nav-item nav-link")" href="/TradespersonAccount/CustomerReviews"><i class="fas fa-star"></i>Customer Reviews</a>
+                <a class="@(ViewBag.CurrentUser=="Password"?"nav-item nav-link active":"nav-item nav-link")" href="/Home/Logout"><i class="fas fa-sign-out"></i>Logout</a>
+            </div>
+        </nav>
+    </aside>
+</div>
+

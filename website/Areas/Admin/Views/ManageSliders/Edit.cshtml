@@ -1,0 +1,57 @@
+﻿@model BridgingAfrica.SliderTbl
+
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<section class="content-header">
+    <h1>Edit Slider<small>(Edit Slider)</small></h1>
+</section>
+<section class="content">
+    @using (Html.BeginForm("Edit", "ManageSliders", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.Id)
+        @Html.HiddenFor(model => model.Image)
+        @Html.HiddenFor(model => model.CreateDate)
+        @Html.HiddenFor(model => model.IsActive)
+        <div class="row">
+            <div class="col-md-12">
+                <div class="box box-warning">
+                    <div class="box-body">
+                        <div class="form-group">
+                            <label>Upper Title : <span style="color:red">(only 2-3 words)</span></label>
+                            @Html.EditorFor(model => model.UpperTitle, new { htmlAttributes = new { @class = "form-control"} })
+                        </div>
+
+                        <div class="form-group">
+                            <label>Lower Title : <span style="color:red">(only 3-5 words)</span></label>
+                            @Html.EditorFor(model => model.LowerTitle, new { htmlAttributes = new { @class = "form-control"} })
+                        </div>
+
+                        <div class="form-group">
+                            <label>Order :</label>
+                            @Html.EditorFor(model => model.ImageOrder, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                        </div>
+
+                        <div class="form-group">
+                            <label>Slider Image : <span style="color:red">(recommended size width=700px and height=466px)</span></label>
+                            <input id="Image" onchange="readURL(this,'#imgpreview');" type="file" name="ImagePath" src="@Model.Image" />
+                            <img id="imgpreview" class="img-thumbnail" style="width:200px" alt="Preview" src="@Model.Image" />
+                        </div>
+
+                        <div class="form-group">
+                            <div class="box-footer">
+                                <input type="submit" value="Update" class="btn btn-primary" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    <div>
+        <a href="/Admin/ManageSliders/Index" class="btn btn-dropbox">Back to List</a>
+    </div>
+</section>

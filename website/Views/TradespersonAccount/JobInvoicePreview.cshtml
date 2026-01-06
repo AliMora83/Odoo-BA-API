@@ -1,0 +1,183 @@
+﻿@model BridgingAfrica.JobInvoiceTbl
+@{
+    ViewBag.Title = "JobInvoicePreview";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script>
+    function PaymentDone(invoiceID) {
+        $.ajax({
+            url: '/api/ProviderApi/JobPaymentDone?invoiceid=' + invoiceID,
+            type: "Post",
+            dataType: "JSON",
+            beforeSend: function () {
+                $("body").mLoading();
+            },
+            success: function (json) {
+                $("body").mLoading('hide');
+                if (json.Status == "Success") {
+                    alert(json.Message);
+                    window.location = "/TradespersonAccount/JobInvoicePreview?jobid=@Model.JobID";
+                }
+                else {
+                    alert(json.Message);
+                }
+            },
+        });
+    }
+</script>
+<main class="main-wrapper">
+    <!-- Start Breadcrumb Area  -->
+    <div class="axil-breadcrumb-area">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 col-md-8">
+                    <div class="inner">
+                        <ul class="axil-breadcrumb">
+                            <li class="axil-breadcrumb-item"><a href="/">Home</a></li>
+                            <li class="separator"></li>
+                            <li class="axil-breadcrumb-item active" aria-current="page">Job Invoice</li>
+                        </ul>
+                        <h1 class="title">Job Invoice</h1>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-4">
+                    <div class="inner">
+                        <div class="bradcrumb-thumb">
+                            <img src="/assets/images/logo/logoheader.png" alt="Image" style="height:140px;" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="axil-dashboard-area mb--80">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="axil-dashboard-area mt--30">
+                    <div class="container">
+                        <div class="axil-dashboard-warp">
+                            <div class="axil-dashboard-author">
+                                <div class="media">
+                                    <div class="media-body">
+                                        <h5 class="title mb-0">Hello @Session["ProviderName"]</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                @Html.Action("_AccountDetail", "TradespersonAccount")
+                                <div class="col-xl-9 col-md-8">
+                                    <div class="card card-style mb-1">
+                                        <div class="row">
+                                            <div class="col-xl-10 col-md-10">
+                                                <h3 class="mb-2">@Model.ProviderJobsTbl.ProviderEnquiryTbl.ProviderTbl.ProviderName</h3>
+                                                <p class="mb-2">@Model.ProviderJobsTbl.ProviderEnquiryTbl.ProviderTbl.ProviderType</p>
+                                                <p class="mb-2">Email: @Model.ProviderJobsTbl.ProviderEnquiryTbl.ProviderTbl.EmailID</p>
+                                                <p class="mb-2">Contact No. @Model.ProviderJobsTbl.ProviderEnquiryTbl.ProviderTbl.ContactNo</p>
+                                                <p class="mb-2">
+                                                    Address: @Model.ProviderJobsTbl.ProviderEnquiryTbl.ProviderTbl.PostalCodesTbl.AreaName,
+                                                    @Model.ProviderJobsTbl.ProviderEnquiryTbl.ProviderTbl.AddressLine1<br />                    @Model.ProviderJobsTbl.ProviderEnquiryTbl.ProviderTbl.AddressLine2
+                                                </p>
+                                            </div>
+                                            <div class="col-xl-2 col-md-2">
+                                                <img class="img-thumbnail" src="@Model.ProviderJobsTbl.ProviderEnquiryTbl.ProviderTbl.ProfileImage" width="80" />
+                                            </div>
+                                        </div>
+                                        <hr class="mb-2 mt-2" />
+                                        <div class="row mb-0">
+                                            <div class="col-4">
+                                                <p class="color-theme font-700">Date:</p>
+                                            </div>
+                                            <div class="col-8">
+                                                <p class="font-400">@Model.CreatedDate.ToString("dd MMM yyyy")</p>
+                                            </div>
+                                            <div class="col-4">
+                                                <p class="color-theme font-700">Invoice No.</p>
+                                            </div>
+                                            <div class="col-8">
+                                                <p class="font-400">#@Model.Id</p>
+                                            </div>
+                                            <div class="col-4">
+                                                <p class="color-theme font-700">Job ID:</p>
+                                            </div>
+                                            <div class="col-8">
+                                                <p class="font-400">#@Model.JobID</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card card-style mb-1">
+                                        <div class="content">
+                                            <h4 class="mb-2">Invoice To</h4>
+                                            <div class="row mb-0 mt-2">
+                                                <div class="col-4"><p class="color-theme font-700">Name:</p></div>
+                                                <div class="col-8">
+                                                    <p class="font-400">@Model.ProviderJobsTbl.ProviderEnquiryTbl.CustomerTbl.FirstName @Model.ProviderJobsTbl.ProviderEnquiryTbl.CustomerTbl.LastName</p>
+                                                </div>
+                                                <div class="col-4"><p class="color-theme font-700">Address:</p></div>
+                                                <div class="col-8">
+                                                    <p class="font-400">
+                                                        @Model.ProviderJobsTbl.ProviderEnquiryTbl.CustomerTbl.PostalCodesTbl.AreaName,
+                                                        @Model.ProviderJobsTbl.ProviderEnquiryTbl.CustomerTbl.AddressLine1<br /> @Model.ProviderJobsTbl.ProviderEnquiryTbl.CustomerTbl.AddressLine2
+                                                    </p>
+                                                </div>
+                                                <div class="col-4"><p class="color-theme font-700">City/State:</p></div>
+                                                <div class="col-8">
+                                                    <p class="font-400">
+                                                        @Model.ProviderJobsTbl.ProviderEnquiryTbl.CustomerTbl.PostalCodesTbl.CityTbl.CityName, @Model.ProviderJobsTbl.ProviderEnquiryTbl.CustomerTbl.PostalCodesTbl.ProvinceTbl.ProvinceName
+                                                    </p>
+                                                </div>
+                                                <div class="col-4"><p class="color-theme font-700">Mobile:</p></div>
+                                                <div class="col-8"><p class="font-400">@Model.ProviderJobsTbl.ProviderEnquiryTbl.CustomerTbl.MobileNo</p></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card card-style mb-1">
+                                        <div class="content">
+                                            <h4 class="mb-1">Description</h4>
+                                            <p>
+                                                Jobs and totals will go here.
+                                            </p>
+                                            <div class="table-responsive">
+                                                <table class="table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th scope="col">Job</th>
+                                                            <th scope="col">Qty</th>
+                                                            <th scope="col">Amount</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>@Model.JobDetail</td>
+                                                            <td>1</td>
+                                                            <td>$@Model.Amount</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <hr />
+                                            <p class="mb-1">Invoice Total: $@Model.Amount</p>
+                                            @if (Model.IsPaid == true)
+                                            {
+                                                <p class="mb-1">Payment Status: Paid</p>
+                                            }
+                                            else
+                                            {
+                                                <p class="mb-1">Payment Status: Due</p>
+                                            }
+                                        </div>
+                                        @if (Model.IsPaid == false)
+                                        {
+                                            <hr />
+                                            <button style="width:300px" onclick="PaymentDone(@Model.Id);" class="axil-btn p-2 btn-bg-primary">Payment Done?</button>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+

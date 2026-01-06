@@ -1,0 +1,129 @@
+﻿
+@{
+    ViewBag.Title = "MyServices";
+    Layout = "~/Areas/MobileApp/Views/Shared/_LayoutMain.cshtml";
+}
+<script>
+    $(document).ready(function () {        
+        getAllService();
+    });
+
+    function getAllService() {
+        var UserID = localStorage.getItem("UserID");       
+        $.ajax({
+            url: '/api/HomeApi/GetCustomerServices?custid=' + UserID,
+            type: "Post",
+            dataType: "JSON",
+            beforeSend: function () {
+                $("body").mLoading();
+            },
+            success: function (json) {
+                $("body").mLoading('hide');
+                if (json.pending.length > 0) {
+                    for (var i in json.pending) {
+                        var id = json.pending[i].Id;
+                        var IsPaid = json.pending[i].IsPaid;
+                        var createdate = new Date(json.pending[i].CreatedDate).toDateString();
+
+                        var btn = "";
+                        if (IsPaid == false) {
+                            btn = "<a onclick='setID(" + id + ")' data-menu='menu-confirm' class='btn btn-xxs mb-0 mr-3 rounded-s text-uppercase font-700 bg-red2-light'><i class='fa fa-times'></i> Cancel Requests</a>";
+                        }
+
+                        $("#tab-9").append("<div class='card card-style bg-theme p-2'><div class='container'><h5 class='font-500 mb-2'>Tradesperson: " + json.pending[i].ProviderName + "</h5><h5 class='font-500 font-14'>Service: " + json.pending[i].ServiceName + "</h5><h5 class='font-500 font-14'>Date: " + createdate + "</h5>" + btn + "</div></div>");
+                    }
+                }
+                else {
+                    $("#tab-9").append("<div class='card card-style bg-theme pb-3'><div class='container'><h5 class='font-500 mt-3'>No records found</h4></div></div>");
+                }
+                if (json.completed.length > 0) {
+                    for (var i in json.completed) {
+                        var createdate = new Date(json.completed[i].CreatedDate).toDateString();
+                        var reviewsCount = json.completed[i].Reviews;
+                        var btnReview = "Write a review";
+                        if (reviewsCount > 0) {
+                            btnReview = "Reviewed";
+                        }
+                        $("#tab-8").append("<div class='card card-style bg-theme p-2'><div class='container'><h5 class='font-500 mb-2'>Tradesperson: " + json.completed[i].ProviderName + "</h5><h5 class='font-500 font-14'>Service: " + json.completed[i].ServiceName + "</h5><h5 class='font-500 font-14'>Date: " + createdate + "</h5><a href='/MobileApp/Home/review?providerID=" + json.completed[i].ProviderID + "&qid=" + json.completed[i].Id + "&custid=" + UserID + "' class='btn btn-m btn-full mb-0 rounded-xl text-uppercase font-900 shadow-s bg-ba-theme mt-2'>" + btnReview + "</a></div></div>");
+                    }
+                }
+                else {
+                    $("#tab-8").append("<div class='card card-style bg-theme pb-3'><div class='container'><h5 class='font-500 mt-3'>No records found</h4></div></div>");
+                }
+            },
+        });
+    }
+    function setID(sid) {
+        $('#menu-confirm').showMenu();
+        $('#btnDelete').attr("onclick", "cancelQuotation(" + sid + ")");
+    } 
+    function cancelQuotation(qid) {
+        $.ajax({
+            url: "/api/HomeApi/CancelQuotation?qid=" + qid,
+            type: 'POST',
+            contentType: 'application/json',
+            beforeSend: function () {
+                $("body").mLoading();
+            },
+            success: function (data) {
+                $("body").mLoading('hide');
+                if (data.Status == "Success") {
+                    document.getElementById("SuccessHeader").innerHTML = "Success";
+                    document.getElementById("SuccessDetail").innerHTML = data.Message;
+                    $('#SuccessMessage').showMenu();
+                    $('#BtnSuccess').click(function () {
+                        window.location = "/MobileApp/Home/MyServices";
+                    });
+                }
+                else {
+                    document.getElementById("ErrorHeader").innerHTML = "Alert";
+                    document.getElementById("ErrorDetails").innerHTML = data.Message;
+                    $('#ErrorMessage').showMenu();                    
+                }
+            },
+            error: function (data) {
+                alert(data.Message);
+                $("body").mLoading('hide');
+            }
+        });
+    }
+</script>
+<div class="page-content">
+    <div class="page-title page-title-small">
+        <h2><a href="/MobileApp/Home/myAccount"><i class="fa fa-arrow-left"></i></a>Requests History</h2>
+    </div>
+    <div class="card header-card shape-rounded" data-card-height="150">
+        <div class="card-overlay bg-ba-theme opacity-95"></div>
+        <div class="card-overlay dark-mode-tint"></div>
+        <div class="card-bg"></div>
+    </div>
+
+    <div class="card card-style bg-theme pb-0">
+        <div class="tab-controls tabs-round tab-animated tabs-medium tabs-rounded shadow-xl" data-tab-items="2" data-tab-active="bg-green1-dark color-white">
+            <a href="#" data-tab-active data-tab="tab-9">Pending Requests</a>
+            <a href="#" data-tab="tab-8">Completed Requests</a>
+        </div>
+    </div>
+    <div class="clearfix mb-3"></div>
+    <div class="tab-content" id="tab-9">
+        
+    </div>
+
+    <div class="tab-content" id="tab-8">
+
+    </div>
+</div>
+<div id="menu-confirm" class="menu menu-box-modal rounded-m" data-menu-height="150" data-menu-width="330">
+    <h1 class="text-center mt-3 pb-1">Are you sure?</h1>
+    <p class="boxed-text-l">
+        Are you sure want to cancel this request?
+    </p>
+    <div class="row mr-3 ml-3 mb-0">
+        <div class="col-6">
+            <a id="btnDelete" href="#" class="close-menu btn btn-sm btn-full button-s shadow-l rounded-s text-uppercase font-900 bg-green1-dark">YES</a>
+        </div>
+        <div class="col-6">
+            <a href="#" class="close-menu btn btn-sm btn-full button-s shadow-l rounded-s text-uppercase font-900 bg-red1-dark">NO</a>
+        </div>
+    </div>
+</div>
