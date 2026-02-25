@@ -52,8 +52,8 @@ class CrmLead(models.Model):
             print("-------")
             json_data = Req.json()
             print("json_datajson_datajson_data", json_data)
-            for data in json_data.get("completed"):
-                if not LeadObj.search(
+        for data in json_data.get("completed", []):
+            if not LeadObj.search(
                     [
                         ("quote_id", "=", data.get("Id")),
                     ]
@@ -80,8 +80,13 @@ class CrmLead(models.Model):
                             "service_id": service_id.id,
                         }
                     )
-            for data in json_data.get("pending"):
-                if not LeadObj.search(
+                       else:
+                    api_is_paid = data.get("IsPaid")
+                    if existing_lead.ispaid != api_is_paid:
+                        existing_lead.write({"ispaid": api_is_paid})
+                        
+                for data in json_data.get("pending", []):
+                    if not LeadObj.search(
                     [
                         ("quote_id", "=", data.get("Id")),
                     ]
@@ -108,3 +113,7 @@ class CrmLead(models.Model):
                             "service_id": service_id.id,
                         }
                     )
+                       else:
+                    api_is_paid = data.get("IsPaid")
+                    if existing_lead.ispaid != api_is_paid:
+                        existing_lead.write({"ispaid": api_is_paid})
