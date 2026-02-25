@@ -52,12 +52,14 @@ class CrmLead(models.Model):
             print("-------")
             json_data = Req.json()
             print("json_datajson_datajson_data", json_data)
-        for data in json_data.get("completed", []):
-            if not LeadObj.search(
-                    [
-                        ("quote_id", "=", data.get("Id")),
-                    ]
-                ):
+            
+            # Process completed requests
+            for data in json_data.get("completed", []):
+                existing_lead = LeadObj.search(
+                    [("quote_id", "=", data.get("Id"))],
+                    limit=1
+                )
+                if not existing_lead:
                     ServiceName = data.get("ServiceName")
                     service_id = self.env["service.service"].search(
                         [("name", "=", ServiceName)]
@@ -80,17 +82,18 @@ class CrmLead(models.Model):
                             "service_id": service_id.id,
                         }
                     )
-                       else:
+                else:
                     api_is_paid = data.get("IsPaid")
                     if existing_lead.ispaid != api_is_paid:
                         existing_lead.write({"ispaid": api_is_paid})
-                        
-                for data in json_data.get("pending", []):
-                    if not LeadObj.search(
-                    [
-                        ("quote_id", "=", data.get("Id")),
-                    ]
-                ):
+            
+            # Process pending requests
+            for data in json_data.get("pending", []):
+                existing_lead = LeadObj.search(
+                    [("quote_id", "=", data.get("Id"))],
+                    limit=1
+                )
+                if not existing_lead:
                     ServiceName = data.get("ServiceName")
                     service_id = self.env["service.service"].search(
                         [("name", "=", ServiceName)]
@@ -113,7 +116,7 @@ class CrmLead(models.Model):
                             "service_id": service_id.id,
                         }
                     )
-                       else:
+                else:
                     api_is_paid = data.get("IsPaid")
                     if existing_lead.ispaid != api_is_paid:
                         existing_lead.write({"ispaid": api_is_paid})
