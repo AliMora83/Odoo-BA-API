@@ -39,7 +39,7 @@ class CrmLead(models.Model):
 
     @api.model
     def _cron_api_crm_services(self):
-        URL = "https://bridgingafrica.ncnsoftware.com/api/odooapi/GetAllRequests"
+        URL = "https://bridging-africa.com/api/odooapi/GetAllRequests"
         Req = requests.get(URL)
         print(
             "ReqReq",
