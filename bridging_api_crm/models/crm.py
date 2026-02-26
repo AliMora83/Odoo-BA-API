@@ -30,7 +30,7 @@ class CrmLead(models.Model):
         "WorkerUrgency",
     )
     q_status_id = fields.Char(
-        "StatusID",
+        "StatusName",
     )
     service_id = fields.Many2one(
         "service.service",
@@ -75,7 +75,7 @@ class CrmLead(models.Model):
                             "contact_name": data.get("Tradesperson"),
                             "workerrrgency": data.get("Id"),
                             "ispaid": data.get("IsPaid"),
-                            "q_status_id": data.get("StatusID"),
+                            "q_status_id": data.get("StatusName"),
                             "name": data.get("WorkerUrgency"),
                             "partner_name": data.get("Customer"),
                             "description": data.get("JobDetail"),
