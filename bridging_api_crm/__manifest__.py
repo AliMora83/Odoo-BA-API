@@ -1,6 +1,6 @@
 {
     "name": "API : CRM : Script",
-    "version": "19.0.1.2",
+    "version": "19.0.1.3a",
     "category": "CRM",
     "summary": """Sync Bridging Africa jobs to Odoo CRM + Auto-invoice workflow""",
     "description": """

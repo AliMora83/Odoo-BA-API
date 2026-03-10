@@ -10,7 +10,7 @@ import requests
 
 class ServiceService(models.Model):
     _name = "service.service"
-
+    _description = "Service Type" 
     name = fields.Char("Name")
 
 
