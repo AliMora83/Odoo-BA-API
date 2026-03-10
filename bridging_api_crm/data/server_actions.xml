@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        
+        <!-- Server Action: Manual Process Paid Lead -->
+        <record id="action_process_paid_lead_manual" model="ir.actions.server">
+            <field name="name">⚡ Process Paid Lead Now</field>
+            <field name="model_id" ref="crm.model_crm_lead"/>
+            <field name="binding_model_id" ref="crm.model_crm_lead"/>
+            <field name="binding_view_types">form,list</field>
+            <field name="state">code</field>
+            <field name="code">
+if record.ispaid and not record.auto_converted_to_opportunity and record.type == 'lead':
+    record._process_paid_lead_workflow()
+    action = {
+        'type': 'ir.actions.client',
+        'tag': 'display_notification',
+        'params': {
+            'title': _('Success'),
+            'message': _('Lead processed: Opportunity, Sales Order, and Invoice created successfully.'),
+            'type': 'success',
+            'sticky': False,
+        }
+    }
+else:
+    action = {
+        'type': 'ir.actions.client',
+        'tag': 'display_notification',
+        'params': {
+            'title': _('Cannot Process'),
+            'message': _('Requirements: (1) IsPaid=True, (2) Not already converted, (3) Type=Lead'),
+            'type': 'warning',
+            'sticky': False,
+        }
+    }
+            </field>
+        </record>
+
+    </data>
+</odoo>
