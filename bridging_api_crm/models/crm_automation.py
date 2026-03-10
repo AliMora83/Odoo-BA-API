@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import models, fields, api, _
+from odoo import models, fields, api, Command, _
 from odoo.exceptions import UserError
 import logging
 
@@ -89,7 +89,7 @@ class CrmLeadAutomation(models.Model):
             'auto_converted_to_opportunity': True,
             'auto_invoice_created': True,
             'related_sale_order_id': sale_order.id,
-            'related_invoice_ids': [(6, 0, [invoice.id])]
+            'related_invoice_ids': [Command.set([invoice.id])]
         })
         
         # Chatter notification
@@ -147,7 +147,6 @@ class CrmLeadAutomation(models.Model):
             _logger.info(f"👤 Using existing customer: {self.partner_id.name}")
         
         self.write(vals)
-        self._onchange_partner_id()
         return self
 
     def _create_sale_order_from_opportunity(self):
