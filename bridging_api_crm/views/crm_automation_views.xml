@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        
+        <!-- Extend CRM Lead form view to show automation status -->
+        <record id="crm_lead_form_view_automation_inherit" model="ir.ui.view">
+            <field name="name">crm.lead.form.automation.inherit</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+            <field name="arch" type="xml">
+                
+                <!-- Add automation status after the IsPaid checkbox -->
+                <xpath expr="//field[@name='ispaid']" position="after">
+                    <field name="auto_converted_to_opportunity" 
+                           readonly="1" 
+                           widget="boolean_toggle"
+                           decoration-success="auto_converted_to_opportunity"
+                           decoration-muted="not auto_converted_to_opportunity"/>
+                    <field name="auto_invoice_created" 
+                           readonly="1"
+                           widget="boolean_toggle" 
+                           decoration-success="auto_invoice_created"
+                           decoration-muted="not auto_invoice_created"/>
+                </xpath>
+                
+                <!-- Add related documents in a new group -->
+                <xpath expr="//sheet" position="inside">
+                    <group string="Automation Links" 
+                           name="automation_links"
+                           attrs="{'invisible': [('auto_converted_to_opportunity', '=', False)]}">
+                        <field name="related_sale_order_id" 
+                               options="{'no_create': True}"/>
+                        <field name="related_invoice_ids" 
+                               widget="many2many_tags"
+                               options="{'no_create': True}"/>
+                    </group>
+                </xpath>
+                
+            </field>
+        </record>
+        
+        <!-- Extend CRM Lead tree view to show automation status -->
+        <record id="crm_lead_tree_view_automation_inherit" model="ir.ui.view">
+            <field name="name">crm.lead.tree.automation.inherit</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.crm_case_tree_view_leads"/>
+            <field name="arch" type="xml">
+                <xpath expr="//tree" position="inside">
+                    <field name="auto_converted_to_opportunity" 
+                           optional="show" 
+                           widget="boolean_toggle" 
+                           readonly="1"/>
+                    <field name="auto_invoice_created" 
+                           optional="show" 
+                           widget="boolean_toggle" 
+                           readonly="1"/>
+                </xpath>
+            </field>
+        </record>
+        
+        <!-- Add filter for paid but not processed leads -->
+        <record id="crm_lead_search_view_automation_inherit" model="ir.ui.view">
+            <field name="name">crm.lead.search.automation.inherit</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.view_crm_case_leads_filter"/>
+            <field name="arch" type="xml">
+                <xpath expr="//search" position="inside">
+                    <separator/>
+                    <filter string="Paid - Pending Automation" 
+                            name="paid_pending" 
+                            domain="[('ispaid', '=', True), ('auto_converted_to_opportunity', '=', False), ('type', '=', 'lead')]"/>
+                    <filter string="Auto-Processed" 
+                            name="auto_processed" 
+                            domain="[('auto_converted_to_opportunity', '=', True)]"/>
+                    <filter string="Auto-Invoiced" 
+                            name="auto_invoiced" 
+                            domain="[('auto_invoice_created', '=', True)]"/>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>
