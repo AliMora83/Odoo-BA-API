@@ -27,7 +27,7 @@
                 <xpath expr="//sheet" position="inside">
                     <group string="Automation Links" 
                            name="automation_links"
-                            invisible="not auto_converted_to_opportunity"
+                            invisible="not auto_converted_to_opportunity">
                         <field name="related_sale_order_id" 
                                options="{'no_create': True}"/>
                         <field name="related_invoice_ids" 
