@@ -40,7 +40,6 @@ class CrmLeadAutomation(models.Model):
         paid_leads = self.search([
             ('ispaid', '=', True),
             ('auto_converted_to_opportunity', '=', False),
-            ('type', '=', 'lead'),
             ('active', '=', True)
         ], limit=50)
         
@@ -118,6 +117,12 @@ class CrmLeadAutomation(models.Model):
     def _convert_to_opportunity_auto(self):
         """Convert lead to opportunity programmatically"""
         self.ensure_one()
+        # Already an opportunity - skip conversion, go straight to invoice
+        if self.type == 'opportunity':
+            _logger.info(f"Already opportunity, creating invoice for '{self.name}'")
+            self._create_invoice_auto()
+            self.auto_converted_to_opportunity = True
+            return
         _logger.info(f"🔄 Converting lead '{self.name}' to opportunity")
         
         vals = {
