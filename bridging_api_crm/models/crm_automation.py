@@ -132,7 +132,6 @@ class CrmLeadAutomation(models.Model):
                 'name': self.contact_name or self.name,
                 'email': self.email_from,
                 'phone': self.phone,
-                'mobile': self.mobile,
                 'street': self.street,
                 'city': self.city,
                 'zip': self.zip,
