@@ -45,7 +45,7 @@
             <field name="model">crm.lead</field>
             <field name="inherit_id" ref="crm.crm_case_tree_view_leads"/>
             <field name="arch" type="xml">
-                <xpath expr="//tree" position="inside">
+                <xpath expr="//list" position="inside">
                     <field name="auto_converted_to_opportunity" 
                            optional="show" 
                            widget="boolean_toggle" 
