@@ -2,3 +2,4 @@
 
 from . import crm
 from . import crm_automation
+from . import helpdesk
