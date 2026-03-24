@@ -2,9 +2,7 @@
 from odoo import models, fields, api, Command, _
 from odoo.exceptions import UserError
 import logging
-
 _logger = logging.getLogger(__name__)
-
 
 class CrmLeadAutomation(models.Model):
     _inherit = "crm.lead"
@@ -120,35 +118,44 @@ class CrmLeadAutomation(models.Model):
         # Already an opportunity - skip conversion, go straight to invoice
         if self.type == 'opportunity':
             _logger.info(f"Already opportunity, creating invoice for '{self.name}'")
-            self._create_invoice_auto()
             self.auto_converted_to_opportunity = True
-            return
+            return self
         _logger.info(f"🔄 Converting lead '{self.name}' to opportunity")
         
         vals = {
             'type': 'opportunity',
             'date_conversion': fields.Datetime.now(),
-            'probability': 100,  # Paid leads are 100% probability
+            'probability': 100, # Paid leads are 100% probability
         }
         
-        # Create customer if needed
+        # Create or find tradesman (partner)
         if not self.partner_id:
-            partner_vals = {
-                'name': self.contact_name or self.name,
-                'email': self.email_from,
-                'phone': self.phone,
-                'street': self.street,
-                'city': self.city,
-                'zip': self.zip,
-                'country_id': self.country_id.id if self.country_id else False,
-                'type': 'contact',
-                'is_company': False,
-            }
-            partner = self.env['res.partner'].create(partner_vals)
+            partner_name = self.contact_name or self.name
+            partner = self.env['res.partner'].search([
+                ('name', '=', partner_name),
+                ('email', '=', self.email_from)
+            ], limit=1)
+            
+            if not partner:
+                partner_vals = {
+                    'name': partner_name,
+                    'email': self.email_from,
+                    'phone': self.phone,
+                    'street': self.street,
+                    'city': self.city,
+                    'zip': self.zip,
+                    'country_id': self.country_id.id if self.country_id else False,
+                    'type': 'contact',
+                    'is_company': False,
+                }
+                partner = self.env['res.partner'].create(partner_vals)
+                _logger.info(f"👤 Created new tradesman contact: {partner.name}")
+            else:
+                _logger.info(f"👤 Found existing tradesman contact: {partner.name}")
+            
             vals['partner_id'] = partner.id
-            _logger.info(f"👤 Created customer: {partner.name}")
         else:
-            _logger.info(f"👤 Using existing customer: {self.partner_id.name}")
+            _logger.info(f"👤 Using existing partner: {self.partner_id.name}")
         
         self.write(vals)
         return self
@@ -164,12 +171,13 @@ class CrmLeadAutomation(models.Model):
             'partner_id': self.partner_id.id,
             'opportunity_id': self.id,
             'origin': f"Opportunity: {self.name}",
-            'note': f"Auto-created from Bridging Africa lead.\nQuote ID: {self.quote_id or 'N/A'}",
+            'note': f"Auto-created lead fee from Bridging Africa.
+Quote ID: {self.quote_id or 'N/A'}",
             'order_line': [(0, 0, {
                 'product_id': product.id,
-                'name': f"{self.service_id.name or 'Service'} - {self.name}",
+                'name': f"Lead Fee - {self.service_id.name or 'Service'} - Job #{self.quote_id}",
                 'product_uom_qty': 1,
-                'price_unit': 100.0,  # TODO: Configure or fetch from API
+                'price_unit': 1.0, # Fixed $1 lead fee
                 'tax_id': [(6, 0, product.taxes_id.ids)],
             })],
         }
@@ -179,11 +187,11 @@ class CrmLeadAutomation(models.Model):
         return sale_order
 
     def _get_or_create_service_product(self):
-        """Get or create generic service product"""
+        """Get or create lead fee service product"""
         product_obj = self.env['product.product']
         
         product = product_obj.search([
-            ('default_code', '=', 'BA-SERVICE'),
+            ('default_code', '=', 'BA-LEAD-FEE'),
             ('type', '=', 'service')
         ], limit=1)
         
@@ -197,16 +205,16 @@ class CrmLeadAutomation(models.Model):
         ], limit=1)
         
         product_vals = {
-            'name': 'Bridging Africa Service',
+            'name': 'Bridging Africa Lead Fee',
             'type': 'service',
             'sale_ok': True,
             'purchase_ok': False,
-            'list_price': 100.0,
-            'default_code': 'BA-SERVICE',
+            'list_price': 1.0,
+            'default_code': 'BA-LEAD-FEE',
             'invoice_policy': 'order',
             'taxes_id': [(6, 0, default_tax.ids)] if default_tax else False,
         }
         
         product = product_obj.create(product_vals)
-        _logger.info(f"✓ Created service product: {product.name}")
+        _logger.info(f"✓ Created lead fee product: {product.name}")
         return product
