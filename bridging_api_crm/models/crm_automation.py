@@ -5,7 +5,6 @@ import logging
 
 _logger = logging.getLogger(__name__)
 
-
 class CrmLeadAutomation(models.Model):
     _inherit = "crm.lead"
     
@@ -59,7 +58,7 @@ class CrmLeadAutomation(models.Model):
         return True
 
     def _process_paid_lead_workflow(self):
-        """Complete workflow: Lead → Opportunity → Sales Order → Invoice"""
+        """Complete workflow: Lead → Opportunity → Sales Order → Invoice + Payment"""
         self.ensure_one()
         _logger.info(f"🚀 Processing workflow for: {self.name}")
         
@@ -73,7 +72,7 @@ class CrmLeadAutomation(models.Model):
         sale_order.action_confirm()
         _logger.info(f"📦 Sales Order {sale_order.name} confirmed")
         
-        # Step 4: Create Invoice using Odoo 19's standard method
+        # Step 4: Create Invoice
         invoices = sale_order._create_invoices(final=True)
         if not invoices:
             raise UserError("Failed to create invoice from sales order")
@@ -82,6 +81,9 @@ class CrmLeadAutomation(models.Model):
         # Step 5: Post Invoice
         invoice.action_post()
         _logger.info(f"📄 Invoice {invoice.name} posted")
+
+        # Step 6: Register Payment (Since it was paid on the website)
+        self._register_payment_for_invoice(invoice)
         
         # Mark as processed
         self.write({
@@ -96,7 +98,7 @@ class CrmLeadAutomation(models.Model):
             body=_("""
                 <div style="background:#f0f9ff;border-left:4px solid #0ea5e9;padding:12px;margin:8px 0;">
                     <h3 style="color:#0369a1;margin:0 0 8px 0;">🤖 Automated Workflow Complete</h3>
-                    <p style="margin:4px 0;"><b>Status:</b> Paid lead automatically processed</p>
+                    <p style="margin:4px 0;"><b>Status:</b> Paid lead automatically processed and invoice marked as paid.</p>
                     <p style="margin:4px 0;"><b>Opportunity:</b> %(opp)s</p>
                     <p style="margin:4px 0;"><b>Sales Order:</b> %(so)s</p>
                     <p style="margin:4px 0;"><b>Invoice:</b> %(inv)s</p>
@@ -114,99 +116,108 @@ class CrmLeadAutomation(models.Model):
         
         return True
 
+    def _register_payment_for_invoice(self, invoice):
+        """Register a payment for the $1 lead fee invoice."""
+        self.ensure_one()
+        # Find a suitable journal (usually Bank or Cash)
+        journal = self.env['account.journal'].search([('type', 'in', ('bank', 'cash'))], limit=1)
+        if not journal:
+            _logger.warning("No bank/cash journal found to register payment")
+            return False
+            
+        payment = self.env['account.payment.register'].with_context(
+            active_model='account.move',
+            active_ids=invoice.ids
+        ).create({
+            'journal_id': journal.id,
+            'payment_date': fields.Date.context_today(self),
+        })._create_payments()
+        
+        _logger.info(f"💰 Payment registered for invoice {invoice.name}")
+        return payment
+
     def _convert_to_opportunity_auto(self):
         """Convert lead to opportunity programmatically"""
         self.ensure_one()
-        # Already an opportunity - skip conversion, go straight to invoice
         if self.type == 'opportunity':
-            _logger.info(f"Already opportunity, creating invoice for '{self.name}'")
-            self._create_invoice_auto()
             self.auto_converted_to_opportunity = True
-            return
-        _logger.info(f"🔄 Converting lead '{self.name}' to opportunity")
-        
+            return self
+            
         vals = {
             'type': 'opportunity',
             'date_conversion': fields.Datetime.now(),
-            'probability': 100,  # Paid leads are 100% probability
+            'probability': 100,
         }
         
-        # Create customer if needed
         if not self.partner_id:
-            partner_vals = {
-                'name': self.contact_name or self.name,
-                'email': self.email_from,
-                'phone': self.phone,
-                'street': self.street,
-                'city': self.city,
-                'zip': self.zip,
-                'country_id': self.country_id.id if self.country_id else False,
-                'type': 'contact',
-                'is_company': False,
-            }
-            partner = self.env['res.partner'].create(partner_vals)
+            partner_name = self.contact_name or self.name
+            partner = self.env['res.partner'].search([
+                ('name', '=', partner_name),
+                ('email', '=', self.email_from)
+            ], limit=1)
+            
+            if not partner:
+                partner_vals = {
+                    'name': partner_name,
+                    'email': self.email_from,
+                    'phone': self.phone,
+                    'street': self.street,
+                    'city': self.city,
+                    'zip': self.zip,
+                    'country_id': self.country_id.id if self.country_id else False,
+                    'type': 'contact',
+                }
+                partner = self.env['res.partner'].create(partner_vals)
             vals['partner_id'] = partner.id
-            _logger.info(f"👤 Created customer: {partner.name}")
-        else:
-            _logger.info(f"👤 Using existing customer: {self.partner_id.name}")
-        
+            
         self.write(vals)
         return self
 
     def _create_sale_order_from_opportunity(self):
         """Create Sales Order from opportunity"""
         self.ensure_one()
-        _logger.info(f"🛒 Creating sales order from: {self.name}")
-        
         product = self._get_or_create_service_product()
         
         order_vals = {
             'partner_id': self.partner_id.id,
             'opportunity_id': self.id,
             'origin': f"Opportunity: {self.name}",
-            'note': f"Auto-created from Bridging Africa lead.\nQuote ID: {self.quote_id or 'N/A'}",
+            'note': f"Auto-created lead fee from Bridging Africa.
+Quote ID: {self.quote_id or 'N/A'}",
             'order_line': [(0, 0, {
                 'product_id': product.id,
-                'name': f"{self.service_id.name or 'Service'} - {self.name}",
+                'name': f"Lead Fee - {self.service_id.name or 'Service'} - Job #{self.quote_id}",
                 'product_uom_qty': 1,
-                'price_unit': 100.0,  # TODO: Configure or fetch from API
-                'tax_id': [(6, 0, product.taxes_id.ids)],
+                'price_unit': 1.0,
+                'tax_id': [(6, 0, 
             })],
         }
         
-        sale_order = self.env['sale.order'].create(order_vals)
-        _logger.info(f"✓ Sales Order created: {sale_order.name}")
-        return sale_order
+        return self.env['sale.order'].create(order_vals)
 
     def _get_or_create_service_product(self):
-        """Get or create generic service product"""
+        """Get or create lead fee service product"""
         product_obj = self.env['product.product']
-        
         product = product_obj.search([
-            ('default_code', '=', 'BA-SERVICE'),
+            ('default_code', '=', 'BA-LEAD-FEE'),
             ('type', '=', 'service')
         ], limit=1)
         
         if product:
             return product
-        
-        # Get default sales tax
+            
         default_tax = self.env['account.tax'].search([
             ('type_tax_use', '=', 'sale'),
             ('company_id', '=', self.env.company.id)
         ], limit=1)
         
         product_vals = {
-            'name': 'Bridging Africa Service',
+            'name': 'Bridging Africa Lead Fee',
             'type': 'service',
-            'sale_ok': True,
-            'purchase_ok': False,
-            'list_price': 100.0,
-            'default_code': 'BA-SERVICE',
+            'list_price': 1.0,
+            'default_code': 'BA-LEAD-FEE',
             'invoice_policy': 'order',
             'taxes_id': [(6, 0, default_tax.ids)] if default_tax else False,
         }
         
-        product = product_obj.create(product_vals)
-        _logger.info(f"✓ Created service product: {product.name}")
-        return product
+        return product_obj.create(product_vals)

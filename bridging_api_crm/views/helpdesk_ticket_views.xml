@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Helpdesk Ticket Form View Inherit -->
+    <record id="helpdesk_ticket_view_form_inherit_ba" model="ir.ui.view">
+        <name>helpdesk.ticket.form.inherit.ba</name>
+        <model>helpdesk.ticket</model>
+        <inherit_id ref="helpdesk.helpdesk_ticket_view_form"/>
+        <arch type="xml">
+            <xpath expr="//field[@name='team_id']" position="after">
+                <field name="ba_query_id" readonly="1"/>
+            </xpath>
+        </arch>
+    </record>
+
+    <!-- Helpdesk Ticket Search View Inherit -->
+    <record id="helpdesk_ticket_view_search_inherit_ba" model="ir.ui.view">
+        <name>helpdesk.ticket.search.inherit.ba</name>
+        <model>helpdesk.ticket</model>
+        <inherit_id ref="helpdesk.helpdesk_ticket_view_search"/>
+        <arch type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="ba_query_id"/>
+            </xpath>
+        </arch>
+    </record>
+</odoo>
