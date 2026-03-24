@@ -1,26 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Helpdesk Ticket Form View Inherit -->
-    <record id="helpdesk_ticket_view_form_inherit_ba" model="ir.ui.view">
-        <name>helpdesk.ticket.form.inherit.ba</name>
-        <model>helpdesk.ticket</model>
-        <inherit_id ref="helpdesk.helpdesk_ticket_view_form"/>
-        <arch type="xml">
-            <xpath expr="//field[@name='team_id']" position="after">
-                <field name="ba_query_id" readonly="1"/>
-            </xpath>
-        </arch>
+
+    <!-- BA Helpdesk Query Form View -->
+    <record id="ba_helpdesk_query_view_form" model="ir.ui.view">
+        <field name="name">ba.helpdesk.query.form</field>
+        <field name="model">ba.helpdesk.query</field>
+        <field name="arch" type="xml">
+            <form string="BA Helpdesk Query">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="ba_query_id"/>
+                            <field name="state"/>
+                        </group>
+                        <group>
+                            <field name="customer_name"/>
+                            <field name="customer_email"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
     </record>
 
-    <!-- Helpdesk Ticket Search View Inherit -->
-    <record id="helpdesk_ticket_view_search_inherit_ba" model="ir.ui.view">
-        <name>helpdesk.ticket.search.inherit.ba</name>
-        <model>helpdesk.ticket</model>
-        <inherit_id ref="helpdesk.helpdesk_ticket_view_search"/>
-        <arch type="xml">
-            <xpath expr="//field[@name='name']" position="after">
+    <!-- BA Helpdesk Query List View -->
+    <record id="ba_helpdesk_query_view_list" model="ir.ui.view">
+        <field name="name">ba.helpdesk.query.list</field>
+        <field name="model">ba.helpdesk.query</field>
+        <field name="arch" type="xml">
+            <list string="BA Helpdesk Queries">
+                <field name="name"/>
                 <field name="ba_query_id"/>
-            </xpath>
-        </arch>
+                <field name="customer_name"/>
+                <field name="customer_email"/>
+                <field name="state"/>
+                <field name="create_date"/>
+            </list>
+        </field>
     </record>
+
+    <!-- BA Helpdesk Query Search View -->
+    <record id="ba_helpdesk_query_view_search" model="ir.ui.view">
+        <field name="name">ba.helpdesk.query.search</field>
+        <field name="model">ba.helpdesk.query</field>
+        <field name="arch" type="xml">
+            <search string="Search Queries">
+                <field name="name"/>
+                <field name="customer_name"/>
+                <field name="customer_email"/>
+                <filter name="new" string="New" domain="[('state','=','new')]"/>
+                <filter name="in_progress" string="In Progress" domain="[('state','=','in_progress')]"/>
+                <filter name="resolved" string="Resolved" domain="[('state','=','resolved')]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Menu Action -->
+    <record id="ba_helpdesk_query_action" model="ir.actions.act_window">
+        <field name="name">BA Helpdesk Queries</field>
+        <field name="res_model">ba.helpdesk.query</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No helpdesk queries yet. They will appear here once the API endpoint is live.
+            </p>
+        </field>
+    </record>
+
 </odoo>
