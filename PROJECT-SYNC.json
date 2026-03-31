@@ -1,27 +1,25 @@
 {
   "project": "Odoo-BA-API",
-  "repo": "AliMora83/odoo-ba-api",
+  "repo": "AliMora83/Odoo-BA-API",
   "branch": "main",
-  "stack": "TypeScript / Next.js / Tailwind",
+  "stack": "Python / Odoo / XML-RPC / FastAPI",
   "status": "Active",
-  "priority": 2,
-  "priority_label": "🟡 Priority 2 — Active Development",
-  "progress_percent": 50,
-  "progress_label": "Development in progress",
-  "current_phase": "Phase 1",
-  "next_step": "See Master.md",
+  "priority": 1,
+  "priority_label": "🟢 Priority 1 — High Impact",
+  "progress_percent": 60,
+  "progress_label": "CRM/HelpDesk endpoints live · Website logic in progress",
+  "current_phase": "Phase 2 — Advanced Features",
+  "next_step": "Implement bulk sync engine for EventSaaS integration",
   "blocker": null,
   "live_url": null,
-  "deploy_target": "Hostinger VPS",
-  "agents": [
-    "AG"
-  ],
+  "deploy_target": "Hostinger VPS (Docker)",
+  "agents": ["Antigravity"],
   "version": "0.0.0",
   "last_push": {
-    "timestamp": "2026-03-31T22:13:54.416Z",
+    "timestamp": "2026-03-31T22:14:05Z",
     "actor": "AliMora83",
-    "commit_message": "chore: implement MACP documentation and sync infrastructure",
-    "sha": "33f12ff"
+    "commit_message": "chore: bootstrap project-sync metadata",
+    "sha": "2cba195"
   },
   "last_updated": "2026-03-31"
 }
